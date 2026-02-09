@@ -1,6 +1,8 @@
 ﻿{
   "cmd.menu.title": "=== HyPerks Cosmetics ===",
+  "cmd.menu.chat_mode": "Menu mode: HyPerks chat menu.",
   "cmd.menu.line": "/hyperks {0}",
+  "cmd.menu.example": "Example: /hyperks list trails",
   "cmd.menu.categories": "Categories loaded: {0}",
   "cmd.menu.category_line": "- {0}: {1} cosmetic(s)",
   "cmd.menu.gui_opened": "GUI menu opened.",

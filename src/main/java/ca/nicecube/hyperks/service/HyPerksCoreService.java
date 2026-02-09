@@ -12,7 +12,6 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
-import com.hypixel.hytale.server.core.command.system.pages.CommandListPage;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -154,18 +153,8 @@ public class HyPerksCoreService {
     }
 
     public void showMenu(CommandContext context) {
-        boolean guiOpened = false;
-        if (context.isPlayer() && this.config.getMenu().isGuiEnabled()) {
-            guiOpened = tryOpenMenuGui(context.senderAs(Player.class));
-            if (guiOpened) {
-                send(context, "cmd.menu.gui_opened");
-            } else if (!this.config.getMenu().isGuiFallbackToChat()) {
-                send(context, "cmd.menu.gui_failed");
-                return;
-            }
-        }
-
         send(context, "cmd.menu.title");
+        send(context, "cmd.menu.chat_mode");
         send(context, "cmd.menu.line", "menu");
         send(context, "cmd.menu.line", "list [category]");
         send(context, "cmd.menu.line", "equip <category> <cosmeticId>");
@@ -175,9 +164,7 @@ public class HyPerksCoreService {
         send(context, "cmd.menu.line", "refreshperms");
         send(context, "cmd.menu.line", "status");
         send(context, "cmd.menu.line", "reload");
-        if (guiOpened) {
-            send(context, "cmd.menu.gui_hint");
-        }
+        send(context, "cmd.menu.example");
 
         for (CosmeticCategory category : CosmeticCategory.values()) {
             int loaded = this.byCategory.getOrDefault(category, Map.of()).size();
@@ -1047,42 +1034,6 @@ public class HyPerksCoreService {
             }
             return (nowMs - value.cachedAtMs) > PERMISSION_CACHE_RETENTION_MS;
         });
-    }
-
-    private boolean tryOpenMenuGui(Player player) {
-        if (player == null || player.getWorld() == null || player.getReference() == null) {
-            return false;
-        }
-
-        World world = player.getWorld();
-
-        try {
-            world.execute(() -> {
-                try {
-                    if (player.getPageManager() == null || player.getReference() == null) {
-                        return;
-                    }
-
-                    Store<EntityStore> store = world.getEntityStore().getStore();
-                    PlayerRef playerRef = store.getComponent(player.getReference(), PlayerRef.getComponentType());
-                    if (playerRef == null || !playerRef.isValid() || playerRef.getReference() == null) {
-                        return;
-                    }
-
-                    player.getPageManager().openCustomPage(
-                        playerRef.getReference(),
-                        store,
-                        new CommandListPage(playerRef, this.config.getMenu().getGuiCommandSeed())
-                    );
-                } catch (Exception ex) {
-                    this.logger.atWarning().withCause(ex).log("[HyPerks] Could not open GUI menu for a player.");
-                }
-            });
-            return true;
-        } catch (Exception ex) {
-            this.logger.atWarning().withCause(ex).log("[HyPerks] Failed to schedule GUI menu opening.");
-            return false;
-        }
     }
 
     private UUID resolvePlayerUuid(Player player) {
