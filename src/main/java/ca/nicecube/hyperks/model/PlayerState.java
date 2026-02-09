@@ -1,11 +1,11 @@
 package ca.nicecube.hyperks.model;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerState {
     private String locale = "";
-    private Map<String, String> activeCosmetics = new LinkedHashMap<>();
+    private Map<String, String> activeCosmetics = new ConcurrentHashMap<>();
 
     public static PlayerState defaults() {
         return new PlayerState();
@@ -16,8 +16,22 @@ public class PlayerState {
             this.locale = "";
         }
         if (this.activeCosmetics == null) {
-            this.activeCosmetics = new LinkedHashMap<>();
+            this.activeCosmetics = new ConcurrentHashMap<>();
+            return;
         }
+
+        Map<String, String> normalized = new ConcurrentHashMap<>();
+        for (Map.Entry<String, String> entry : this.activeCosmetics.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
+            String category = entry.getKey().trim().toLowerCase();
+            String cosmeticId = entry.getValue().trim().toLowerCase();
+            if (!category.isBlank() && !cosmeticId.isBlank()) {
+                normalized.put(category, cosmeticId);
+            }
+        }
+        this.activeCosmetics = normalized;
     }
 
     public String getLocale() {

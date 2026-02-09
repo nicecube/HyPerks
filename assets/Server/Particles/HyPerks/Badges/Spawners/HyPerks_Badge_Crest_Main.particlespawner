@@ -1,0 +1,113 @@
+{
+  "EmitOffset": {
+    "X": {
+      "Min": 0.0,
+      "Max": 0.08
+    },
+    "Y": {
+      "Min": 0.0,
+      "Max": 0.08
+    },
+    "Z": {
+      "Min": 0.0,
+      "Max": 0.08
+    }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LightInfluence": 0.8,
+  "MaxConcurrentParticles": 6,
+  "ParticleLifeSpan": {
+    "Min": 0.45,
+    "Max": 0.65
+  },
+  "SpawnRate": {
+    "Min": 5,
+    "Max": 8
+  },
+  "ParticleRotateWithSpawner": false,
+  "Attractors": [
+    {
+      "Position": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "LinearAcceleration": {
+        "X": 0,
+        "Y": 0.7,
+        "Z": 0
+      },
+      "Radius": 1,
+      "DampingMultiplier": {
+        "X": 0.78,
+        "Y": 0.84,
+        "Z": 0.78
+      }
+    }
+  ],
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Badge_Crest.png",
+    "FrameSize": {
+      "Width": 64,
+      "Height": 64
+    },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "None",
+    "Animation": {
+      "0": {
+        "FrameIndex": {
+          "Min": 0,
+          "Max": 0
+        },
+        "Opacity": 1.0,
+        "Scale": {
+          "X": {
+            "Min": 1.0,
+            "Max": 1.0
+          }
+        },
+        "Color": "#cfbcff"
+      },
+      "60": {
+        "Opacity": 0.75,
+        "Color": "#f2e9ff"
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": {
+          "X": {
+            "Min": 0.22,
+            "Max": 0.22
+          }
+        },
+        "Color": "#f2e9ff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Rotation": {
+        "Z": {
+          "Min": 0,
+          "Max": 360
+        }
+      },
+      "Scale": {
+        "X": {
+          "Min": 0.22,
+          "Max": 0.30
+        }
+      },
+      "Opacity": 0.95,
+      "Color": "#cfbcff",
+      "FrameIndex": {
+        "Min": 0,
+        "Max": 0
+      }
+    }
+  },
+  "RenderMode": "Erosion",
+  "SpawnBurst": false,
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1,
+  "LinearFiltering": true
+}
+

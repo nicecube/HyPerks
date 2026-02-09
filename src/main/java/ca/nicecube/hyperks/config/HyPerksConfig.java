@@ -10,6 +10,9 @@ public class HyPerksConfig {
     private List<String> worldWhitelist = new ArrayList<>(List.of("default"));
     private boolean allowInAllWorlds = false;
     private boolean autoShowMenuHintOnJoin = true;
+    private boolean runtimeRenderingEnabled = true;
+    private int runtimeRenderIntervalMs = 250;
+    private boolean debugMode = false;
 
     public static HyPerksConfig defaults() {
         return new HyPerksConfig();
@@ -36,6 +39,13 @@ public class HyPerksConfig {
             }
         }
         this.worldWhitelist = new ArrayList<>(normalizedWorlds);
+
+        if (this.runtimeRenderIntervalMs < 50) {
+            this.runtimeRenderIntervalMs = 50;
+        }
+        if (this.runtimeRenderIntervalMs > 5000) {
+            this.runtimeRenderIntervalMs = 5000;
+        }
     }
 
     public boolean isWorldAllowed(String worldName) {
@@ -68,5 +78,17 @@ public class HyPerksConfig {
 
     public boolean isAutoShowMenuHintOnJoin() {
         return autoShowMenuHintOnJoin;
+    }
+
+    public boolean isRuntimeRenderingEnabled() {
+        return runtimeRenderingEnabled;
+    }
+
+    public int getRuntimeRenderIntervalMs() {
+        return runtimeRenderIntervalMs;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
     }
 }

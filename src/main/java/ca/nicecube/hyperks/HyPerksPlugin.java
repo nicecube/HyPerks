@@ -46,8 +46,17 @@ public class HyPerksPlugin extends JavaPlugin {
     }
 
     @Override
+    protected void start() {
+        if (this.coreService != null) {
+            this.coreService.startRuntime();
+        }
+        this.getLogger().atInfo().log("[%s] Runtime started.", this.getName());
+    }
+
+    @Override
     protected void shutdown() {
         if (this.coreService != null) {
+            this.coreService.stopRuntime();
             this.coreService.flush();
         }
         this.getLogger().atInfo().log("[%s] Disabled.", this.getName());

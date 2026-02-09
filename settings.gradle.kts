@@ -24,5 +24,6 @@ hytale {
         Group = "ca.nicecube"
         Name = "HyPerks"
         Main = "ca.nicecube.hyperks.HyPerksPlugin"
+        IncludesAssetPack = true
     }
 }

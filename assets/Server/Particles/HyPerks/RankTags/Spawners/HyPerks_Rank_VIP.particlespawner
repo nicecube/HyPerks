@@ -1,0 +1,118 @@
+{
+  "EmitOffset": {
+    "X": {
+      "Min": -0.25,
+      "Max": 0.25
+    },
+    "Y": {
+      "Min": 0.0,
+      "Max": 0.14
+    },
+    "Z": {
+      "Min": -0.25,
+      "Max": 0.25
+    }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 1.0,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 1,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 14,
+  "ParticleLifeSpan": {
+    "Min": 0.7,
+    "Max": 1.0
+  },
+  "SpawnRate": {
+    "Min": 8,
+    "Max": 10
+  },
+  "TotalParticles": {
+    "Min": 7,
+    "Max": 10
+  },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Tag_VIP.png",
+    "FrameSize": {
+      "Width": 64,
+      "Height": 64
+    },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 1.0,
+        "Scale": {
+          "X": {
+            "Min": 1.0,
+            "Max": 1.0
+          }
+        },
+        "Color": "#fff2a8"
+      },
+      "45": {
+        "Opacity": 0.82
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": {
+          "X": {
+            "Min": 0.18,
+            "Max": 0.18
+          }
+        },
+        "Color": "#fff8da"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": {
+        "X": {
+          "Min": 0.16,
+          "Max": 0.24
+        }
+      },
+      "Opacity": 0.95,
+      "Rotation": {
+        "Z": {
+          "Min": 0,
+          "Max": 360
+        }
+      }
+    }
+  },
+  "SpawnBurst": true,
+  "Attractors": [
+    {
+      "Position": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "LinearAcceleration": {
+        "X": 0,
+        "Y": 2.7,
+        "Z": 0
+      },
+      "DampingMultiplier": {
+        "X": 0.9,
+        "Y": 0.96,
+        "Z": 0.9
+      }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": {
+      "Min": -180,
+      "Max": 180
+    },
+    "Pitch": {
+      "Min": 72,
+      "Max": 88
+    },
+    "Speed": {
+      "Min": 0.45,
+      "Max": 1.1
+    }
+  }
+}

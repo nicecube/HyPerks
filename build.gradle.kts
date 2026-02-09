@@ -28,3 +28,8 @@ dependencies {
     // Local Hytale server API jar (override with -Phytale.server.jar=...).
     compileOnly(files(hytaleServerJar))
 }
+
+tasks.named<Jar>("jar") {
+    // Bundle custom asset pack files into the plugin jar.
+    from(layout.projectDirectory.dir("assets"))
+}

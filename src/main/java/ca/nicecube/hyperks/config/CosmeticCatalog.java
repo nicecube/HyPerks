@@ -10,25 +10,105 @@ public class CosmeticCatalog {
 
     public static CosmeticCatalog defaults() {
         CosmeticCatalog catalog = new CosmeticCatalog();
-        catalog.cosmetics.add(c("ember_halo", "auras"));
-        catalog.cosmetics.add(c("void_orbit", "auras"));
-        catalog.cosmetics.add(c("angel_wings", "auras"));
-        catalog.cosmetics.add(c("heart_bloom", "auras"));
+        catalog.cosmetics.add(c(
+            "ember_halo",
+            "auras",
+            "Server/Particles/Combat/Impact/Misc/Fire/Impact_Fire.particlesystem",
+            "orbit"
+        ));
+        catalog.cosmetics.add(c(
+            "void_orbit",
+            "auras",
+            "Server/Particles/Combat/Impact/Misc/Void/VoidImpact.particlesystem",
+            "orbit"
+        ));
+        catalog.cosmetics.add(c(
+            "angel_wings",
+            "auras",
+            "Server/Particles/Combat/Impact/Critical/Impact_Critical.particlesystem",
+            "wings"
+        ));
+        catalog.cosmetics.add(c(
+            "heart_bloom",
+            "auras",
+            "Server/Particles/Combat/Mace/Signature/Mace_Signature_Cast_End.particlesystem",
+            "hearts"
+        ));
 
-        catalog.cosmetics.add(c("flame_steps", "footprints"));
-        catalog.cosmetics.add(c("frost_steps", "footprints"));
-        catalog.cosmetics.add(c("heart_steps", "footprints"));
-        catalog.cosmetics.add(c("rune_steps", "footprints"));
+        catalog.cosmetics.add(c(
+            "flame_steps",
+            "footprints",
+            "Server/Particles/Block/Lava/Block_Run_Lava.particlesystem",
+            "steps"
+        ));
+        catalog.cosmetics.add(c(
+            "frost_steps",
+            "footprints",
+            "Server/Particles/Block/Snow/Block_Run_Snow.particlesystem",
+            "steps"
+        ));
+        catalog.cosmetics.add(c(
+            "heart_steps",
+            "footprints",
+            "Server/Particles/Block/Grass/Block_Sprint_Grass.particlesystem",
+            "steps"
+        ));
+        catalog.cosmetics.add(c(
+            "rune_steps",
+            "footprints",
+            "Server/Particles/Block/Crystal/Block_Run_Crystal.particlesystem",
+            "steps"
+        ));
 
-        catalog.cosmetics.add(c("vip_gold", "floating_badges"));
-        catalog.cosmetics.add(c("vip_plus_platinum", "floating_badges"));
-        catalog.cosmetics.add(c("mvp_diamond", "floating_badges"));
-        catalog.cosmetics.add(c("founder_crest", "floating_badges"));
+        catalog.cosmetics.add(c(
+            "vip",
+            "floating_badges",
+            "Server/Particles/HyPerks/RankTags/VIP_Stream.particlesystem",
+            "rank_stream"
+        ));
+        catalog.cosmetics.add(c(
+            "vip_plus",
+            "floating_badges",
+            "Server/Particles/HyPerks/RankTags/VIPPlus_Stream.particlesystem",
+            "rank_stream"
+        ));
+        catalog.cosmetics.add(c(
+            "mvp",
+            "floating_badges",
+            "Server/Particles/HyPerks/RankTags/MVP_Stream.particlesystem",
+            "rank_stream"
+        ));
+        catalog.cosmetics.add(c(
+            "mvp_plus",
+            "floating_badges",
+            "Server/Particles/HyPerks/RankTags/MVPPlus_Stream.particlesystem",
+            "rank_stream"
+        ));
 
-        catalog.cosmetics.add(c("season1_champion", "trophy_badges"));
-        catalog.cosmetics.add(c("ranked_top10", "trophy_badges"));
-        catalog.cosmetics.add(c("event_winner", "trophy_badges"));
-        catalog.cosmetics.add(c("beta_veteran", "trophy_badges"));
+        catalog.cosmetics.add(c(
+            "season1_champion",
+            "trophy_badges",
+            "Server/Particles/HyPerks/Trophies/Season_Champion_Crown.particlesystem",
+            "crown"
+        ));
+        catalog.cosmetics.add(c(
+            "ranked_top10",
+            "trophy_badges",
+            "Server/Particles/HyPerks/Trophies/Ranked_Top10_Crown.particlesystem",
+            "crown"
+        ));
+        catalog.cosmetics.add(c(
+            "event_winner",
+            "trophy_badges",
+            "Server/Particles/HyPerks/Trophies/Event_Winner_Crown.particlesystem",
+            "crown"
+        ));
+        catalog.cosmetics.add(c(
+            "beta_veteran",
+            "trophy_badges",
+            "Server/Particles/HyPerks/Trophies/Beta_Veteran_Crown.particlesystem",
+            "crown"
+        ));
         return catalog;
     }
 
@@ -58,8 +138,8 @@ public class CosmeticCatalog {
         return cosmetics;
     }
 
-    private static CosmeticDefinition c(String id, String category) {
-        CosmeticDefinition definition = new CosmeticDefinition(id, category);
+    private static CosmeticDefinition c(String id, String category, String effectId, String renderStyle) {
+        CosmeticDefinition definition = new CosmeticDefinition(id, category, effectId, renderStyle);
         definition.normalize();
         return definition;
     }

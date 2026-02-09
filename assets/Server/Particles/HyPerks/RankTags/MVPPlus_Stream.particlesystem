@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Rank_MVPPlus",
+      "FixedRotation": false
+    }
+  ],
+  "LifeSpan": 1.15,
+  "IsImportant": false
+}

@@ -23,7 +23,7 @@ public class HyPerksCommand extends AbstractCommand {
         this.addAliases("perks", "cosmetics");
         this.requirePermission("hyperks.use");
 
-        this.actionArg = this.withOptionalArg("action", "Action: menu/list/equip/unequip/active/lang/reload", ArgTypes.STRING);
+        this.actionArg = this.withOptionalArg("action", "Action: menu/list/equip/unequip/active/lang/status/reload", ArgTypes.STRING);
         this.arg1 = this.withOptionalArg("arg1", "First argument", ArgTypes.STRING);
         this.arg2 = this.withOptionalArg("arg2", "Second argument", ArgTypes.STRING);
     }
@@ -57,6 +57,7 @@ public class HyPerksCommand extends AbstractCommand {
                 }
             }
             case "active" -> this.coreService.showActive(context);
+            case "status" -> this.coreService.showStatus(context);
             case "lang" -> {
                 if (first == null) {
                     this.coreService.send(context, "error.usage", "/hyperks lang <en|fr>");

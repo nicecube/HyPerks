@@ -5,33 +5,70 @@ import ca.nicecube.hyperks.config.CosmeticDefinition;
 import ca.nicecube.hyperks.config.HyPerksConfig;
 import ca.nicecube.hyperks.model.CosmeticCategory;
 import ca.nicecube.hyperks.model.PlayerState;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class HyPerksCoreService {
+    private static final String PARTICLE_EXTENSION = ".particlesystem";
+    private static final String UNRESOLVED_EFFECT_ID = "";
+    private static final String RENDER_THREAD_NAME = "HyPerks-Renderer";
+
+    private static final long FOOTPRINT_MIN_INTERVAL_MS = 180L;
+    private static final double FOOTPRINT_MIN_MOVE_SQUARED = 0.16D;
+    private static final long TRACKER_RETENTION_MS = 300_000L;
+
     private final HytaleLogger logger;
     private final HyPerksPaths paths;
     private final LocalizationService localizationService;
     private final JsonConfigStore configStore;
     private final PlayerStateService playerStateService;
 
-    private HyPerksConfig config = HyPerksConfig.defaults();
-    private CosmeticCatalog catalog = CosmeticCatalog.defaults();
-    private final Map<CosmeticCategory, Map<String, CosmeticDefinition>> byCategory = new EnumMap<>(CosmeticCategory.class);
+    private volatile HyPerksConfig config = HyPerksConfig.defaults();
+    private volatile CosmeticCatalog catalog = CosmeticCatalog.defaults();
+    private volatile Map<CosmeticCategory, Map<String, CosmeticDefinition>> byCategory = emptyLookup();
+
+    private final Map<UUID, RenderTracker> renderTrackers = new ConcurrentHashMap<>();
+    private final Map<String, String> resolvedEffectIds = new ConcurrentHashMap<>();
+    private final Set<String> missingEffectWarnings = ConcurrentHashMap.newKeySet();
+    private final Set<String> failedSpawnWarnings = ConcurrentHashMap.newKeySet();
+    private final AtomicLong renderFrame = new AtomicLong(0L);
+
+    private volatile boolean runtimeManaged = false;
+    private ScheduledExecutorService runtimeExecutor;
+    private ScheduledFuture<?> runtimeTask;
 
     public HyPerksCoreService(
         HytaleLogger logger,
@@ -47,7 +84,7 @@ public class HyPerksCoreService {
         this.playerStateService = playerStateService;
     }
 
-    public void reload() {
+    public synchronized void reload() {
         this.localizationService.loadOrCreateDefaults();
         this.config = this.configStore.loadOrCreate(
             this.paths.getConfigPath(),
@@ -61,16 +98,43 @@ public class HyPerksCoreService {
             CosmeticCatalog::defaults,
             CosmeticCatalog::normalize
         );
+
         rebuildLookup();
+        this.resolvedEffectIds.clear();
+        this.missingEffectWarnings.clear();
+        this.failedSpawnWarnings.clear();
+
         this.logger.atInfo().log(
-            "[HyPerks] Loaded %s cosmetics across %s categories.",
+            "[HyPerks] Reloaded: cosmetics=%s, categories=%s, runtime=%s (%sms), worlds=%s",
             this.catalog.getCosmetics().size(),
-            this.byCategory.size()
+            this.byCategory.size(),
+            this.config.isRuntimeRenderingEnabled(),
+            this.config.getRuntimeRenderIntervalMs(),
+            this.config.isAllowInAllWorlds() ? "*" : this.config.getWorldWhitelist()
         );
+
+        if (this.runtimeManaged) {
+            restartRuntimeRenderer();
+        }
     }
 
     public void flush() {
         this.playerStateService.flush();
+    }
+
+    public synchronized void startRuntime() {
+        this.runtimeManaged = true;
+        restartRuntimeRenderer();
+    }
+
+    public synchronized void stopRuntime() {
+        this.runtimeManaged = false;
+        stopRuntimeRendererInternal();
+    }
+
+    public boolean isRuntimeRunning() {
+        ScheduledFuture<?> task = this.runtimeTask;
+        return task != null && !task.isCancelled() && !task.isDone();
     }
 
     public void showMenu(CommandContext context) {
@@ -81,8 +145,28 @@ public class HyPerksCoreService {
         send(context, "cmd.menu.line", "unequip <category>");
         send(context, "cmd.menu.line", "active");
         send(context, "cmd.menu.line", "lang <en|fr>");
+        send(context, "cmd.menu.line", "status");
         send(context, "cmd.menu.line", "reload");
         send(context, "cmd.menu.categories", categorySummary());
+    }
+
+    public void showStatus(CommandContext context) {
+        send(context, "cmd.status.title");
+        send(context, "cmd.status.runtime_enabled", this.config.isRuntimeRenderingEnabled());
+        send(context, "cmd.status.runtime_interval", this.config.getRuntimeRenderIntervalMs());
+        send(context, "cmd.status.runtime_active", this.isRuntimeRunning());
+        send(context, "cmd.status.cosmetics_loaded", this.catalog.getCosmetics().size());
+        send(
+            context,
+            "cmd.status.worlds",
+            this.config.isAllowInAllWorlds() ? "*" : String.join(", ", new LinkedHashSet<>(this.config.getWorldWhitelist()))
+        );
+
+        if (context.isPlayer()) {
+            Player player = context.senderAs(Player.class);
+            String worldName = player.getWorld() == null ? "unknown" : player.getWorld().getName();
+            send(context, "cmd.status.current_world_allowed", worldName, this.config.isWorldAllowed(worldName));
+        }
     }
 
     public void listCosmetics(CommandContext context, String categoryId) {
@@ -119,12 +203,14 @@ public class HyPerksCoreService {
                 context,
                 String.format(
                     Locale.ROOT,
-                    "- [%s] %s (%s/%s) -> %s",
+                    "- [%s] %s (%s/%s) -> %s | style=%s | fx=%s",
                     lockText,
                     cosmeticName,
                     cosmetic.getCategory(),
                     cosmetic.getId(),
-                    cosmetic.getPermission()
+                    cosmetic.getPermission(),
+                    cosmetic.getRenderStyle(),
+                    cosmetic.getEffectId()
                 )
             );
         }
@@ -182,7 +268,6 @@ public class HyPerksCoreService {
             return;
         }
 
-        Player player = context.senderAs(Player.class);
         UUID playerUuid = context.sender().getUuid();
         PlayerState state = this.playerStateService.get(playerUuid);
         state.removeActive(category.getId());
@@ -229,7 +314,6 @@ public class HyPerksCoreService {
             return;
         }
 
-        Player player = context.senderAs(Player.class);
         UUID playerUuid = context.sender().getUuid();
         PlayerState state = this.playerStateService.get(playerUuid);
         state.setLocale(locale);
@@ -247,13 +331,23 @@ public class HyPerksCoreService {
         if (playerUuid == null) {
             return;
         }
+
         PlayerState state = this.playerStateService.get(playerUuid);
+
         if (this.config.isAutoShowMenuHintOnJoin()) {
             player.sendMessage(Message.raw(tr(player, "join.hint")));
         }
 
         if (!state.getAllActive().isEmpty()) {
             player.sendMessage(Message.raw(tr(player, "join.active_loaded", state.getAllActive().size())));
+        }
+
+        if (this.config.isDebugMode()) {
+            this.logger.atInfo().log(
+                "[HyPerks] Player ready: %s (active cosmetics=%s)",
+                playerUuid,
+                state.getAllActive().size()
+            );
         }
     }
 
@@ -269,22 +363,397 @@ public class HyPerksCoreService {
         context.sendMessage(Message.raw(message));
     }
 
+    private synchronized void restartRuntimeRenderer() {
+        stopRuntimeRendererInternal();
+
+        if (!this.config.isRuntimeRenderingEnabled()) {
+            this.logger.atInfo().log("[HyPerks] Runtime renderer disabled in config.");
+            return;
+        }
+
+        int intervalMs = this.config.getRuntimeRenderIntervalMs();
+        this.runtimeExecutor = Executors.newSingleThreadScheduledExecutor(new RenderThreadFactory());
+        this.runtimeTask = this.runtimeExecutor.scheduleAtFixedRate(
+            this::tickRuntimeRendererSafe,
+            intervalMs,
+            intervalMs,
+            TimeUnit.MILLISECONDS
+        );
+
+        this.logger.atInfo().log("[HyPerks] Runtime renderer started (%sms).", intervalMs);
+    }
+
+    private synchronized void stopRuntimeRendererInternal() {
+        if (this.runtimeTask != null) {
+            this.runtimeTask.cancel(false);
+            this.runtimeTask = null;
+        }
+
+        if (this.runtimeExecutor != null) {
+            this.runtimeExecutor.shutdownNow();
+            try {
+                this.runtimeExecutor.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            this.runtimeExecutor = null;
+        }
+
+        this.renderTrackers.clear();
+    }
+
+    private void tickRuntimeRendererSafe() {
+        try {
+            tickRuntimeRenderer();
+        } catch (Exception ex) {
+            this.logger.atWarning().withCause(ex).log("[HyPerks] Runtime render tick failed.");
+        }
+    }
+
+    private void tickRuntimeRenderer() {
+        Universe universe = Universe.get();
+        if (universe == null) {
+            return;
+        }
+
+        long frame = this.renderFrame.incrementAndGet();
+        if (frame % 40L == 0L) {
+            pruneOldTrackers(System.currentTimeMillis());
+        }
+
+        Collection<World> worlds = new ArrayList<>(universe.getWorlds().values());
+        for (World world : worlds) {
+            if (world == null || !world.isAlive() || world.getPlayerCount() <= 0) {
+                continue;
+            }
+
+            if (!this.config.isWorldAllowed(world.getName())) {
+                continue;
+            }
+
+            world.execute(() -> renderWorld(world, frame));
+        }
+    }
+
+    private void renderWorld(World world, long frame) {
+        Store<EntityStore> store = world.getEntityStore().getStore();
+        long nowMs = System.currentTimeMillis();
+
+        for (PlayerRef playerRef : world.getPlayerRefs()) {
+            renderPlayer(store, playerRef, frame, nowMs);
+        }
+    }
+
+    private void renderPlayer(Store<EntityStore> store, PlayerRef playerRef, long frame, long nowMs) {
+        if (playerRef == null || !playerRef.isValid() || playerRef.getReference() == null) {
+            return;
+        }
+
+        Player player = store.getComponent(playerRef.getReference(), Player.getComponentType());
+        if (player == null || player.wasRemoved()) {
+            return;
+        }
+
+        UUID playerUuid = playerRef.getUuid();
+        if (playerUuid == null) {
+            return;
+        }
+
+        PlayerState state = this.playerStateService.get(playerUuid);
+        if (state.getAllActive().isEmpty()) {
+            return;
+        }
+
+        TransformComponent transform = store.getComponent(playerRef.getReference(), TransformComponent.getComponentType());
+        if (transform == null || transform.getPosition() == null) {
+            return;
+        }
+
+        Vector3d position = new Vector3d(transform.getPosition());
+        RenderTracker tracker = this.renderTrackers.computeIfAbsent(playerUuid, ignored -> new RenderTracker());
+        tracker.lastSeenMs = nowMs;
+
+        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.AURAS);
+        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.FOOTPRINTS);
+        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.FLOATING_BADGES);
+        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.TROPHY_BADGES);
+    }
+
+    private void renderCategory(
+        Player player,
+        PlayerState state,
+        Store<EntityStore> store,
+        Vector3d position,
+        RenderTracker tracker,
+        long nowMs,
+        long frame,
+        CosmeticCategory category
+    ) {
+        CosmeticDefinition cosmetic = resolveActiveCosmetic(state, category);
+        if (cosmetic == null) {
+            return;
+        }
+
+        if (!hasCosmeticPermission(player, cosmetic)) {
+            return;
+        }
+
+        String effectId = resolveEffectId(cosmetic.getEffectId());
+        if (effectId.isBlank()) {
+            return;
+        }
+
+        switch (category) {
+            case AURAS -> renderAura(effectId, cosmetic, position, store, frame);
+            case FOOTPRINTS -> renderFootprints(effectId, position, store, tracker, nowMs);
+            case FLOATING_BADGES -> renderFloatingBadge(effectId, cosmetic, position, store, frame);
+            case TROPHY_BADGES -> renderTrophyBadge(effectId, cosmetic, position, store, frame);
+        }
+    }
+
+    private void renderAura(String effectId, CosmeticDefinition cosmetic, Vector3d position, Store<EntityStore> store, long frame) {
+        String style = cosmetic.getRenderStyle();
+        if ("wings".equals(style)) {
+            double flap = Math.sin(frame * 0.35D) * 0.18D;
+            spawnParticle(effectId, position.x - 0.55D, position.y + 1.55D + flap, position.z - 0.2D, store);
+            spawnParticle(effectId, position.x + 0.55D, position.y + 1.55D + flap, position.z - 0.2D, store);
+            spawnParticle(effectId, position.x - 0.35D, position.y + 1.2D - flap, position.z - 0.05D, store);
+            spawnParticle(effectId, position.x + 0.35D, position.y + 1.2D - flap, position.z - 0.05D, store);
+            return;
+        }
+
+        if ("hearts".equals(style)) {
+            double bob = Math.sin(frame * 0.20D) * 0.12D;
+            spawnParticle(effectId, position.x - 0.22D, position.y + 2.0D + bob, position.z, store);
+            spawnParticle(effectId, position.x + 0.22D, position.y + 2.0D + bob, position.z, store);
+            spawnParticle(effectId, position.x, position.y + 2.2D + bob, position.z, store);
+            return;
+        }
+
+        double phase = frame * 0.22D;
+        double y = position.y + 1.8D;
+        double radius = 0.75D;
+
+        for (int i = 0; i < 3; i++) {
+            double angle = phase + (Math.PI * 2D * i / 3D);
+            double x = position.x + Math.cos(angle) * radius;
+            double z = position.z + Math.sin(angle) * radius;
+            spawnParticle(effectId, x, y, z, store);
+        }
+    }
+
+    private void renderFootprints(
+        String effectId,
+        Vector3d position,
+        Store<EntityStore> store,
+        RenderTracker tracker,
+        long nowMs
+    ) {
+        if (tracker.lastFootstepPosition != null) {
+            if (tracker.lastFootstepPosition.distanceSquaredTo(position) < FOOTPRINT_MIN_MOVE_SQUARED) {
+                return;
+            }
+            if ((nowMs - tracker.lastFootstepAtMs) < FOOTPRINT_MIN_INTERVAL_MS) {
+                return;
+            }
+        }
+
+        spawnParticle(effectId, position.x, position.y + 0.05D, position.z, store);
+        tracker.lastFootstepPosition = new Vector3d(position);
+        tracker.lastFootstepAtMs = nowMs;
+    }
+
+    private void renderFloatingBadge(
+        String effectId,
+        CosmeticDefinition cosmetic,
+        Vector3d position,
+        Store<EntityStore> store,
+        long frame
+    ) {
+        if ("rank_stream".equals(cosmetic.getRenderStyle())) {
+            double phase = frame * 0.34D;
+            double radius = 0.20D;
+            double x = position.x + Math.cos(phase) * radius;
+            double z = position.z + Math.sin(phase) * radius;
+            spawnParticle(effectId, x, position.y + 0.08D, z, store);
+            return;
+        }
+
+        double side = Math.sin(frame * 0.12D) * 0.18D;
+        double bob = Math.sin(frame * 0.07D) * 0.10D;
+        double y = position.y + 2.35D + bob;
+        spawnParticle(effectId, position.x + side, y, position.z, store);
+
+        if (!"badge".equals(cosmetic.getRenderStyle())) {
+            spawnParticle(effectId, position.x - side, y, position.z, store);
+        }
+    }
+
+    private void renderTrophyBadge(
+        String effectId,
+        CosmeticDefinition cosmetic,
+        Vector3d position,
+        Store<EntityStore> store,
+        long frame
+    ) {
+        if (!"crown".equals(cosmetic.getRenderStyle())) {
+            renderFloatingBadge(effectId, cosmetic, position, store, frame);
+            return;
+        }
+
+        double phase = frame * 0.20D;
+        double radius = 0.32D;
+        double y = position.y + 2.65D;
+
+        spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
+        spawnParticle(
+            effectId,
+            position.x + Math.cos(phase + Math.PI) * radius,
+            y,
+            position.z + Math.sin(phase + Math.PI) * radius,
+            store
+        );
+
+        if ((frame % 2L) == 0L) {
+            spawnParticle(effectId, position.x, y + 0.22D, position.z, store);
+        }
+    }
+
+    private void spawnParticle(String effectId, double x, double y, double z, Store<EntityStore> store) {
+        try {
+            ParticleUtil.spawnParticleEffect(effectId, new Vector3d(x, y, z), store);
+        } catch (Exception ex) {
+            if (this.failedSpawnWarnings.add(effectId)) {
+                this.logger.atWarning().withCause(ex).log(
+                    "[HyPerks] Failed to spawn particle '%s'. Check cosmetics.json effect IDs.",
+                    effectId
+                );
+            }
+        }
+    }
+
+    private CosmeticDefinition resolveActiveCosmetic(PlayerState state, CosmeticCategory category) {
+        String selectedId = state.getActive(category.getId());
+        if (selectedId == null || selectedId.isBlank()) {
+            return null;
+        }
+
+        return this.byCategory
+            .getOrDefault(category, Map.of())
+            .get(normalizeId(selectedId));
+    }
+
+    private String resolveEffectId(String configuredEffectId) {
+        String normalized = normalizeEffectId(configuredEffectId);
+        if (normalized.isBlank()) {
+            return UNRESOLVED_EFFECT_ID;
+        }
+
+        return this.resolvedEffectIds.computeIfAbsent(normalized, this::resolveEffectIdFromAssets);
+    }
+
+    private String resolveEffectIdFromAssets(String candidate) {
+        try {
+            Map<String, ParticleSystem> particleMap = ParticleSystem.getAssetMap().getAssetMap();
+            String resolved = findParticleKey(particleMap, candidate);
+            if (!resolved.isBlank()) {
+                return resolved;
+            }
+
+            if (candidate.endsWith(PARTICLE_EXTENSION)) {
+                String noExtension = candidate.substring(0, candidate.length() - PARTICLE_EXTENSION.length());
+                resolved = findParticleKey(particleMap, noExtension);
+            } else {
+                resolved = findParticleKey(particleMap, candidate + PARTICLE_EXTENSION);
+            }
+
+            if (!resolved.isBlank()) {
+                return resolved;
+            }
+
+            if (this.missingEffectWarnings.add(candidate)) {
+                this.logger.atWarning().log(
+                    "[HyPerks] Unknown particle system '%s'. Update cosmetics.json effectId values.",
+                    candidate
+                );
+            }
+        } catch (Exception ex) {
+            if (this.missingEffectWarnings.add(candidate + "#assetLookup")) {
+                this.logger.atWarning().withCause(ex).log(
+                    "[HyPerks] Could not validate particle system id '%s'.",
+                    candidate
+                );
+            }
+        }
+
+        return UNRESOLVED_EFFECT_ID;
+    }
+
+    private String findParticleKey(Map<String, ParticleSystem> particleMap, String candidate) {
+        if (candidate == null || candidate.isBlank()) {
+            return "";
+        }
+
+        if (particleMap.containsKey(candidate)) {
+            return candidate;
+        }
+
+        String candidateNormalized = normalizeEffectId(candidate).toLowerCase(Locale.ROOT);
+
+        for (String key : particleMap.keySet()) {
+            if (key.equalsIgnoreCase(candidate)) {
+                return key;
+            }
+
+            String normalizedKey = normalizeEffectId(key).toLowerCase(Locale.ROOT);
+            if (normalizedKey.equals(candidateNormalized)) {
+                return key;
+            }
+
+            if (normalizedKey.endsWith("/" + candidateNormalized)) {
+                return key;
+            }
+        }
+
+        if (!candidate.startsWith("Server/")) {
+            String withServerPrefix = "Server/" + candidate;
+            if (particleMap.containsKey(withServerPrefix)) {
+                return withServerPrefix;
+            }
+        }
+
+        return "";
+    }
+
+    private void pruneOldTrackers(long nowMs) {
+        this.renderTrackers.entrySet().removeIf(entry -> (nowMs - entry.getValue().lastSeenMs) > TRACKER_RETENTION_MS);
+    }
+
     private void rebuildLookup() {
-        this.byCategory.clear();
+        EnumMap<CosmeticCategory, Map<String, CosmeticDefinition>> rebuilt = new EnumMap<>(CosmeticCategory.class);
         for (CosmeticCategory category : CosmeticCategory.values()) {
-            this.byCategory.put(category, new LinkedHashMap<>());
+            rebuilt.put(category, new LinkedHashMap<>());
         }
 
         for (CosmeticDefinition cosmetic : this.catalog.getCosmetics()) {
             if (!cosmetic.isEnabled()) {
                 continue;
             }
+
             CosmeticCategory category = CosmeticCategory.fromId(cosmetic.getCategory());
             if (category == null) {
                 continue;
             }
-            this.byCategory.get(category).put(cosmetic.getId(), cosmetic);
+
+            rebuilt.get(category).put(cosmetic.getId(), cosmetic);
         }
+
+        EnumMap<CosmeticCategory, Map<String, CosmeticDefinition>> immutable = new EnumMap<>(CosmeticCategory.class);
+        for (Map.Entry<CosmeticCategory, Map<String, CosmeticDefinition>> entry : rebuilt.entrySet()) {
+            immutable.put(entry.getKey(), Collections.unmodifiableMap(entry.getValue()));
+        }
+
+        this.byCategory = Collections.unmodifiableMap(immutable);
     }
 
     private String categorySummary() {
@@ -302,9 +771,12 @@ public class HyPerksCoreService {
     private String tr(CommandSender sender, String key, Object... args) {
         String locale = this.config.getDefaultLanguage();
         if (sender != null) {
-            PlayerState state = this.playerStateService.get(sender.getUuid());
-            if (state.getLocale() != null && !state.getLocale().isBlank()) {
-                locale = state.getLocale();
+            UUID senderUuid = sender.getUuid();
+            if (senderUuid != null) {
+                PlayerState state = this.playerStateService.get(senderUuid);
+                if (state.getLocale() != null && !state.getLocale().isBlank()) {
+                    locale = state.getLocale();
+                }
             }
         }
         return this.localizationService.translate(locale, key, args);
@@ -328,6 +800,10 @@ public class HyPerksCoreService {
     }
 
     private UUID resolvePlayerUuid(PlayerReadyEvent event, Player player) {
+        if (player.getWorld() == null) {
+            return null;
+        }
+
         PlayerRef playerRef = player.getWorld()
             .getEntityStore()
             .getStore()
@@ -343,5 +819,35 @@ public class HyPerksCoreService {
             return "";
         }
         return input.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeEffectId(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.trim().replace('\\', '/');
+    }
+
+    private static Map<CosmeticCategory, Map<String, CosmeticDefinition>> emptyLookup() {
+        EnumMap<CosmeticCategory, Map<String, CosmeticDefinition>> empty = new EnumMap<>(CosmeticCategory.class);
+        for (CosmeticCategory category : CosmeticCategory.values()) {
+            empty.put(category, Map.of());
+        }
+        return Collections.unmodifiableMap(empty);
+    }
+
+    private static final class RenderThreadFactory implements ThreadFactory {
+        @Override
+        public Thread newThread(Runnable task) {
+            Thread thread = new Thread(task, RENDER_THREAD_NAME);
+            thread.setDaemon(true);
+            return thread;
+        }
+    }
+
+    private static final class RenderTracker {
+        private Vector3d lastFootstepPosition;
+        private long lastFootstepAtMs;
+        private long lastSeenMs;
     }
 }
