@@ -1,0 +1,14 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Trophy_MCQC_Fleur_B_Main",
+      "FixedRotation": false
+    },
+    {
+      "SpawnerId": "HyPerks_Trophy_Sparkle",
+      "StartDelay": 0.03
+    }
+  ],
+  "LifeSpan": 1.5,
+  "IsImportant": true
+}

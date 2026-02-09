@@ -134,6 +134,24 @@ public class CosmeticCatalog {
             "Server/Particles/HyPerks/RankTags/MVPPlus_Stream.particlesystem",
             "rank_stream"
         ));
+        catalog.cosmetics.add(c(
+            "mcqc_legacy_fleur",
+            "floating_badges",
+            "Server/Particles/HyPerks/Badges/MCQC_Legacy_Fleur_Badge.particlesystem",
+            "badge"
+        ));
+        catalog.cosmetics.add(c(
+            "mcqc_legacy_fleur_b",
+            "floating_badges",
+            "Server/Particles/HyPerks/Badges/MCQC_Legacy_Fleur_B_Badge.particlesystem",
+            "badge"
+        ));
+        catalog.cosmetics.add(c(
+            "mcqc_legacy_fleur_c",
+            "floating_badges",
+            "Server/Particles/HyPerks/Badges/MCQC_Legacy_Fleur_C_Badge.particlesystem",
+            "badge"
+        ));
 
         catalog.cosmetics.add(c(
             "season1_champion",
@@ -157,6 +175,24 @@ public class CosmeticCatalog {
             "beta_veteran",
             "trophy_badges",
             "Server/Particles/HyPerks/Trophies/Beta_Veteran_Crown.particlesystem",
+            "crown"
+        ));
+        catalog.cosmetics.add(c(
+            "mcqc_legacy_trophy",
+            "trophy_badges",
+            "Server/Particles/HyPerks/Trophies/MCQC_Legacy_Trophy.particlesystem",
+            "crown"
+        ));
+        catalog.cosmetics.add(c(
+            "mcqc_legacy_trophy_b",
+            "trophy_badges",
+            "Server/Particles/HyPerks/Trophies/MCQC_Legacy_Trophy_B.particlesystem",
+            "crown"
+        ));
+        catalog.cosmetics.add(c(
+            "mcqc_legacy_trophy_c",
+            "trophy_badges",
+            "Server/Particles/HyPerks/Trophies/MCQC_Legacy_Trophy_C.particlesystem",
             "crown"
         ));
         return catalog;

@@ -50,6 +50,7 @@ Default `config.json` includes:
 
 ```json
 {
+  "_comment": "JSON does not support // comments. Use _comment fields as documentation.",
   "defaultLanguage": "en",
   "worldWhitelist": ["default"],
   "allowInAllWorlds": false,
@@ -60,12 +61,17 @@ Default `config.json` includes:
   "permissionCacheTtlMs": 1500,
   "detailedCosmeticDescriptions": true,
   "menu": {
+    "_comment": "guiCommandSeed controls the default GUI command search keyword",
     "guiEnabled": true,
     "guiFallbackToChat": true,
     "guiCommandSeed": "hyperks"
   },
   "persistence": {
+    "_comment": "mysql: fill ip/port/databaseName/username/password, or set jdbcUrl directly",
     "mode": "json",
+    "ip": "127.0.0.1",
+    "port": 3306,
+    "databaseName": "hyperks",
     "jdbcUrl": "",
     "username": "",
     "password": "",
@@ -81,7 +87,7 @@ Persistence notes:
 
 - `mode: "json"` uses one file per player
 - `mode: "sqlite"` can use default local DB (`player-state.db`) or custom `jdbcUrl`
-- `mode: "mysql"` requires a valid MySQL JDBC URL
+- `mode: "mysql"` can use `ip` + `port` + `databaseName` (auto JDBC) or a custom `jdbcUrl`
 
 ## Runtime Renderer
 

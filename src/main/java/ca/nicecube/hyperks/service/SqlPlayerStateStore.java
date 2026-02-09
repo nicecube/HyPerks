@@ -61,7 +61,7 @@ public class SqlPlayerStateStore implements PlayerStateStore {
         String mode = config.getMode();
         String tableName = sanitizeTableName(config.getTableName());
         int timeoutSeconds = Math.max(1, config.getConnectTimeoutMs() / 1000);
-        String jdbcUrl = resolveJdbcUrl(mode, dataRoot, config.getJdbcUrl());
+        String jdbcUrl = resolveJdbcUrl(mode, dataRoot, config);
 
         SqlPlayerStateStore store = new SqlPlayerStateStore(
             logger,
@@ -198,7 +198,12 @@ public class SqlPlayerStateStore implements PlayerStateStore {
             "updated_at = excluded.updated_at";
     }
 
-    private static String resolveJdbcUrl(String mode, Path dataRoot, String configuredJdbcUrl) {
+    private static String resolveJdbcUrl(
+        String mode,
+        Path dataRoot,
+        HyPerksConfig.PersistenceConfig config
+    ) {
+        String configuredJdbcUrl = config.getJdbcUrl();
         if (configuredJdbcUrl != null && !configuredJdbcUrl.isBlank()) {
             return configuredJdbcUrl.trim();
         }
@@ -208,8 +213,18 @@ public class SqlPlayerStateStore implements PlayerStateStore {
             return "jdbc:sqlite:" + sqliteFile.toAbsolutePath();
         }
 
+        if ("mysql".equals(mode)) {
+            return String.format(
+                Locale.ROOT,
+                "jdbc:mysql://%s:%d/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
+                config.getIp(),
+                config.getPort(),
+                config.getDatabaseName()
+            );
+        }
+
         throw new IllegalStateException(
-            "persistence.jdbcUrl is required for mode '" + mode + "'."
+            "Could not resolve JDBC URL for mode '" + mode + "'."
         );
     }
 

@@ -92,6 +92,12 @@
   "cosmetic.floating_badges.mvp.desc": "MVP tags rise quickly around your character.",
   "cosmetic.floating_badges.mvp_plus.name": "MVP+ Tag Stream",
   "cosmetic.floating_badges.mvp_plus.desc": "Top-tier MVP+ tag stream with high intensity.",
+  "cosmetic.floating_badges.mcqc_legacy_fleur.name": "MCQC Legacy Fleur",
+  "cosmetic.floating_badges.mcqc_legacy_fleur.desc": "A floating fleur-de-lys badge for Minecraft Quebec veterans.",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_b.name": "MCQC Legacy Fleur (B)",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_b.desc": "Variant B: a neon cyan-magenta fleur style for MCQC veterans.",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_c.name": "MCQC Legacy Fleur (C)",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_c.desc": "Variant C: a clean royal fleur style for MCQC veterans.",
 
   "cosmetic.trophy_badges.season1_champion.name": "Season 1 Champion",
   "cosmetic.trophy_badges.season1_champion.desc": "Champion crown effect for season winners.",
@@ -100,5 +106,11 @@
   "cosmetic.trophy_badges.event_winner.name": "Event Winner",
   "cosmetic.trophy_badges.event_winner.desc": "Celebration crown reserved for event winners.",
   "cosmetic.trophy_badges.beta_veteran.name": "Beta Veteran",
-  "cosmetic.trophy_badges.beta_veteran.desc": "Legacy crown for early beta veterans."
+  "cosmetic.trophy_badges.beta_veteran.desc": "Legacy crown for early beta veterans.",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy.name": "MCQC Legacy Trophy",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy.desc": "Honor trophy for your old Minecraft Quebec players.",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_b.name": "MCQC Legacy Trophy (B)",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_b.desc": "Variant B: elegant neon-fantasy trophy for MCQC veterans.",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_c.name": "MCQC Legacy Trophy (C)",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_c.desc": "Variant C: clean prestige trophy for MCQC veterans."
 }

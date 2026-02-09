@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.Locale;
 
 public class HyPerksConfig {
+    private String _comment = "JSON does not support // comments. Use _comment fields as documentation.";
+    private String _commentLanguage = "defaultLanguage supports: en, fr";
+    private String _commentWorlds = "worldWhitelist is used when allowInAllWorlds=false";
+    private String _commentRuntime = "runtimeRenderIntervalMs valid range: 50..5000";
+    private String _commentPersistence = "Set persistence.mode to json/sqlite/mysql";
     private String defaultLanguage = "en";
     private List<String> worldWhitelist = new ArrayList<>(List.of("default"));
     private boolean allowInAllWorlds = false;
@@ -24,6 +29,22 @@ public class HyPerksConfig {
     }
 
     public void normalize() {
+        if (this._comment == null || this._comment.isBlank()) {
+            this._comment = "JSON does not support // comments. Use _comment fields as documentation.";
+        }
+        if (this._commentLanguage == null || this._commentLanguage.isBlank()) {
+            this._commentLanguage = "defaultLanguage supports: en, fr";
+        }
+        if (this._commentWorlds == null || this._commentWorlds.isBlank()) {
+            this._commentWorlds = "worldWhitelist is used when allowInAllWorlds=false";
+        }
+        if (this._commentRuntime == null || this._commentRuntime.isBlank()) {
+            this._commentRuntime = "runtimeRenderIntervalMs valid range: 50..5000";
+        }
+        if (this._commentPersistence == null || this._commentPersistence.isBlank()) {
+            this._commentPersistence = "Set persistence.mode to json/sqlite/mysql";
+        }
+
         if (this.defaultLanguage == null || this.defaultLanguage.isBlank()) {
             this.defaultLanguage = "en";
         }
@@ -142,6 +163,7 @@ public class HyPerksConfig {
     }
 
     public static class MenuConfig {
+        private String _comment = "guiCommandSeed controls the default GUI command search keyword";
         private boolean guiEnabled = true;
         private boolean guiFallbackToChat = true;
         private String guiCommandSeed = "hyperks";
@@ -151,6 +173,9 @@ public class HyPerksConfig {
         }
 
         public void normalize() {
+            if (this._comment == null || this._comment.isBlank()) {
+                this._comment = "guiCommandSeed controls the default GUI command search keyword";
+            }
             if (this.guiCommandSeed == null || this.guiCommandSeed.isBlank()) {
                 this.guiCommandSeed = "hyperks";
             }
@@ -171,7 +196,11 @@ public class HyPerksConfig {
     }
 
     public static class PersistenceConfig {
+        private String _comment = "mysql: fill ip/port/databaseName/username/password, or set jdbcUrl directly";
         private String mode = "json";
+        private String ip = "127.0.0.1";
+        private int port = 3306;
+        private String databaseName = "hyperks";
         private String jdbcUrl = "";
         private String username = "";
         private String password = "";
@@ -184,12 +213,36 @@ public class HyPerksConfig {
         }
 
         public void normalize() {
+            if (this._comment == null || this._comment.isBlank()) {
+                this._comment = "mysql: fill ip/port/databaseName/username/password, or set jdbcUrl directly";
+            }
+
             if (this.mode == null || this.mode.isBlank()) {
                 this.mode = "json";
             }
             this.mode = this.mode.trim().toLowerCase(Locale.ROOT);
             if (!this.mode.equals("json") && !this.mode.equals("sqlite") && !this.mode.equals("mysql")) {
                 this.mode = "json";
+            }
+
+            if (this.ip == null || this.ip.isBlank()) {
+                this.ip = "127.0.0.1";
+            }
+            this.ip = this.ip.trim();
+
+            if (this.port < 1) {
+                this.port = 1;
+            }
+            if (this.port > 65535) {
+                this.port = 65535;
+            }
+
+            if (this.databaseName == null || this.databaseName.isBlank()) {
+                this.databaseName = "hyperks";
+            }
+            this.databaseName = this.databaseName.trim().toLowerCase(Locale.ROOT);
+            if (!this.databaseName.matches("[a-z0-9_\\-]+")) {
+                this.databaseName = "hyperks";
             }
 
             if (this.jdbcUrl == null) {
@@ -223,6 +276,18 @@ public class HyPerksConfig {
 
         public String getJdbcUrl() {
             return jdbcUrl;
+        }
+
+        public String getIp() {
+            return ip;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public String getDatabaseName() {
+            return databaseName;
         }
 
         public String getUsername() {

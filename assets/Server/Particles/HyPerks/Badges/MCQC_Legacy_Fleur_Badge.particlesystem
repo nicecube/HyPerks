@@ -1,0 +1,14 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Badge_MCQC_Fleur_Main",
+      "FixedRotation": false
+    },
+    {
+      "SpawnerId": "HyPerks_Badge_Glitter",
+      "StartDelay": 0.02
+    }
+  ],
+  "LifeSpan": 1.25,
+  "IsImportant": false
+}

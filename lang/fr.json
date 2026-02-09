@@ -92,6 +92,12 @@
   "cosmetic.floating_badges.mvp.desc": "Des tags MVP montent rapidement autour de toi.",
   "cosmetic.floating_badges.mvp_plus.name": "Flux de tags MVP+",
   "cosmetic.floating_badges.mvp_plus.desc": "Flux MVP+ haut niveau avec forte intensite.",
+  "cosmetic.floating_badges.mcqc_legacy_fleur.name": "Fleur Legacy MCQC",
+  "cosmetic.floating_badges.mcqc_legacy_fleur.desc": "Badge flottant fleur de lys pour les veterans de Minecraft Quebec.",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_b.name": "Fleur Legacy MCQC (B)",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_b.desc": "Variante B : style neon cyan-magenta pour veterans MCQC.",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_c.name": "Fleur Legacy MCQC (C)",
+  "cosmetic.floating_badges.mcqc_legacy_fleur_c.desc": "Variante C : style royal epure pour veterans MCQC.",
 
   "cosmetic.trophy_badges.season1_champion.name": "Champion Saison 1",
   "cosmetic.trophy_badges.season1_champion.desc": "Effet couronne pour les champions de saison.",
@@ -100,5 +106,11 @@
   "cosmetic.trophy_badges.event_winner.name": "Gagnant d'evenement",
   "cosmetic.trophy_badges.event_winner.desc": "Couronne de celebration pour les gagnants d'evenement.",
   "cosmetic.trophy_badges.beta_veteran.name": "Veteran beta",
-  "cosmetic.trophy_badges.beta_veteran.desc": "Couronne legacy pour les veterans beta."
+  "cosmetic.trophy_badges.beta_veteran.desc": "Couronne legacy pour les veterans beta.",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy.name": "Trophee Legacy MCQC",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy.desc": "Trophee d'honneur pour tes anciens joueurs Minecraft Quebec.",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_b.name": "Trophee Legacy MCQC (B)",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_b.desc": "Variante B : trophee neon fantasy elegant pour veterans MCQC.",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_c.name": "Trophee Legacy MCQC (C)",
+  "cosmetic.trophy_badges.mcqc_legacy_trophy_c.desc": "Variante C : trophee prestige epure pour veterans MCQC."
 }

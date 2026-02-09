@@ -1,7 +1,7 @@
 {
     "Group": "ca.nicecube",
     "Name": "HyPerks",
-    "Version": "0.3.1",
+    "Version": "0.3.2",
     "Description": "VIP cosmetics framework with GUI menu, SQL persistence, runtime effects, and multi-language support.",
     "Authors": [
         {
