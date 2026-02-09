@@ -852,33 +852,45 @@ public class HyPerksCoreService {
                 return resolved;
             }
 
-            if (candidate.endsWith(PARTICLE_EXTENSION)) {
-                String noExtension = candidate.substring(0, candidate.length() - PARTICLE_EXTENSION.length());
+            String normalizedCandidate = normalizeEffectId(candidate);
+            String noExtension = stripParticleExtension(normalizedCandidate);
+            if (!noExtension.equalsIgnoreCase(normalizedCandidate)) {
                 resolved = findParticleKey(particleMap, noExtension);
-            } else {
-                resolved = findParticleKey(particleMap, candidate + PARTICLE_EXTENSION);
+                if (!resolved.isBlank()) {
+                    return resolved;
+                }
             }
 
-            if (!resolved.isBlank()) {
-                return resolved;
+            String baseName = basenameOfPath(noExtension);
+            if (!baseName.isBlank()) {
+                resolved = findParticleKey(particleMap, baseName);
+                if (!resolved.isBlank()) {
+                    return resolved;
+                }
+                resolved = findParticleKey(particleMap, baseName + PARTICLE_EXTENSION);
+                if (!resolved.isBlank()) {
+                    return resolved;
+                }
             }
 
             if (this.missingEffectWarnings.add(candidate)) {
                 this.logger.atWarning().log(
-                    "[HyPerks] Unknown particle system '%s'. Update cosmetics.json effectId values.",
+                    "[HyPerks] Unknown particle system '%s'. Using raw effect id as fallback.",
                     candidate
                 );
             }
         } catch (Exception ex) {
             if (this.missingEffectWarnings.add(candidate + "#assetLookup")) {
                 this.logger.atWarning().withCause(ex).log(
-                    "[HyPerks] Could not validate particle system id '%s'.",
+                    "[HyPerks] Could not validate particle system id '%s'. Using raw fallback.",
                     candidate
                 );
             }
         }
 
-        return UNRESOLVED_EFFECT_ID;
+        // Do not block runtime rendering when lookup heuristics fail.
+        // Some environments expose particle keys in non-path formats.
+        return normalizeEffectId(candidate);
     }
 
     private String findParticleKey(Map<String, ParticleSystem> particleMap, String candidate) {
@@ -886,35 +898,89 @@ public class HyPerksCoreService {
             return "";
         }
 
-        if (particleMap.containsKey(candidate)) {
-            return candidate;
+        String candidateNormalized = normalizeEffectId(candidate);
+        if (particleMap.containsKey(candidateNormalized)) {
+            return candidateNormalized;
         }
 
-        String candidateNormalized = normalizeEffectId(candidate).toLowerCase(Locale.ROOT);
+        String candidateLower = candidateNormalized.toLowerCase(Locale.ROOT);
+        String candidateNoExtension = stripParticleExtension(candidateLower);
+        String candidateBaseName = basenameOfPath(candidateNoExtension);
+
+        String bestKey = "";
+        int bestScore = -1;
 
         for (String key : particleMap.keySet()) {
-            if (key.equalsIgnoreCase(candidate)) {
-                return key;
+            if (key == null || key.isBlank()) {
+                continue;
             }
 
-            String normalizedKey = normalizeEffectId(key).toLowerCase(Locale.ROOT);
-            if (normalizedKey.equals(candidateNormalized)) {
-                return key;
+            String keyNormalized = normalizeEffectId(key);
+            String keyLower = keyNormalized.toLowerCase(Locale.ROOT);
+            String keyNoExtension = stripParticleExtension(keyLower);
+            String keyBaseName = basenameOfPath(keyNoExtension);
+
+            int score = 0;
+            if (keyLower.equals(candidateLower)) {
+                score = 100;
+            } else if (keyNoExtension.equals(candidateNoExtension)) {
+                score = 95;
+            } else if (keyBaseName.equals(candidateBaseName)) {
+                score = 90;
+            } else if (
+                keyNoExtension.endsWith("/" + candidateNoExtension)
+                    || candidateNoExtension.endsWith("/" + keyNoExtension)
+            ) {
+                score = 85;
+            } else if (
+                keyNoExtension.endsWith("/" + candidateBaseName)
+                    || candidateNoExtension.endsWith("/" + keyBaseName)
+            ) {
+                score = 80;
+            } else if (
+                keyNoExtension.contains(candidateNoExtension)
+                    || candidateNoExtension.contains(keyNoExtension)
+            ) {
+                score = 70;
+            } else if (
+                keyNoExtension.contains(candidateBaseName)
+                    || candidateNoExtension.contains(keyBaseName)
+            ) {
+                score = 65;
             }
 
-            if (normalizedKey.endsWith("/" + candidateNormalized)) {
-                return key;
+            if (score > bestScore) {
+                bestScore = score;
+                bestKey = key;
             }
         }
 
-        if (!candidate.startsWith("Server/")) {
-            String withServerPrefix = "Server/" + candidate;
-            if (particleMap.containsKey(withServerPrefix)) {
-                return withServerPrefix;
-            }
+        if (bestScore >= 0) {
+            return bestKey;
         }
 
         return "";
+    }
+
+    private String stripParticleExtension(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+
+        if (value.toLowerCase(Locale.ROOT).endsWith(PARTICLE_EXTENSION)) {
+            return value.substring(0, value.length() - PARTICLE_EXTENSION.length());
+        }
+
+        return value;
+    }
+
+    private String basenameOfPath(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+
+        int slash = value.lastIndexOf('/');
+        return slash >= 0 ? value.substring(slash + 1) : value;
     }
 
     private void pruneOldTrackers(long nowMs) {
