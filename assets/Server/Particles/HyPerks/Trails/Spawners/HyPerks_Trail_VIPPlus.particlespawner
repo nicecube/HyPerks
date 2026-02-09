@@ -1,0 +1,55 @@
+﻿{
+  "EmitOffset": {
+    "X": { "Min": -0.14, "Max": 0.14 },
+    "Y": { "Min": 0.0, "Max": 0.12 },
+    "Z": { "Min": -0.14, "Max": 0.14 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0.92,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 1,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 16,
+  "ParticleLifeSpan": { "Min": 0.55, "Max": 0.9 },
+  "SpawnRate": { "Min": 6, "Max": 9 },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Trail_VIP_PLUS.png",
+    "FrameSize": { "Width": 64, "Height": 64 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 1.0,
+        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
+        "Color": "#d6f3ff"
+      },
+      "55": {
+        "Opacity": 0.72
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": { "X": { "Min": 0.10, "Max": 0.10 } },
+        "Color": "#ecfbff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": { "X": { "Min": 0.18, "Max": 0.18 } },
+      "Opacity": 0.92,
+      "Rotation": { "Z": { "Min": 0, "Max": 360 } }
+    }
+  },
+  "SpawnBurst": false,
+  "Attractors": [
+    {
+      "Position": { "X": 0, "Y": 0, "Z": 0 },
+      "LinearAcceleration": { "X": 0, "Y": 1.5, "Z": 0 },
+      "DampingMultiplier": { "X": 0.88, "Y": 0.92, "Z": 0.88 }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": { "Min": -180, "Max": 180 },
+    "Pitch": { "Min": 70, "Max": 88 },
+    "Speed": { "Min": 0.22, "Max": 0.58 }
+  }
+}

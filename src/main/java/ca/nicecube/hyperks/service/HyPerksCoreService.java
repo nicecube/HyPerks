@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
+import com.hypixel.hytale.server.core.command.system.pages.CommandListPage;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -31,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +51,8 @@ public class HyPerksCoreService {
     private static final long FOOTPRINT_MIN_INTERVAL_MS = 180L;
     private static final double FOOTPRINT_MIN_MOVE_SQUARED = 0.16D;
     private static final long TRACKER_RETENTION_MS = 300_000L;
+    private static final long COMMAND_TRACKER_RETENTION_MS = 600_000L;
+    private static final long PERMISSION_CACHE_RETENTION_MS = 180_000L;
 
     private final HytaleLogger logger;
     private final HyPerksPaths paths;
@@ -64,6 +68,8 @@ public class HyPerksCoreService {
     private final Map<String, String> resolvedEffectIds = new ConcurrentHashMap<>();
     private final Set<String> missingEffectWarnings = ConcurrentHashMap.newKeySet();
     private final Set<String> failedSpawnWarnings = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, Long> commandUsageTracker = new ConcurrentHashMap<>();
+    private final Map<PermissionCacheKey, PermissionCacheValue> permissionCache = new ConcurrentHashMap<>();
     private final AtomicLong renderFrame = new AtomicLong(0L);
 
     private volatile boolean runtimeManaged = false;
@@ -92,6 +98,7 @@ public class HyPerksCoreService {
             HyPerksConfig::defaults,
             HyPerksConfig::normalize
         );
+        this.playerStateService.configure(this.config.getPersistence());
         this.catalog = this.configStore.loadOrCreate(
             this.paths.getCosmeticsPath(),
             CosmeticCatalog.class,
@@ -103,15 +110,20 @@ public class HyPerksCoreService {
         this.resolvedEffectIds.clear();
         this.missingEffectWarnings.clear();
         this.failedSpawnWarnings.clear();
+        this.commandUsageTracker.clear();
+        this.permissionCache.clear();
 
         this.logger.atInfo().log(
-            "[HyPerks] Reloaded: cosmetics=%s, categories=%s, runtime=%s (%sms), worlds=%s",
+            "[HyPerks] Reloaded: cosmetics=%s, categories=%s, runtime=%s (%sms), cooldown=%sms, permCacheTtl=%sms, worlds=%s",
             this.catalog.getCosmetics().size(),
             this.byCategory.size(),
             this.config.isRuntimeRenderingEnabled(),
             this.config.getRuntimeRenderIntervalMs(),
+            this.config.getCommandCooldownMs(),
+            this.config.getPermissionCacheTtlMs(),
             this.config.isAllowInAllWorlds() ? "*" : this.config.getWorldWhitelist()
         );
+        this.logger.atInfo().log("[HyPerks] Persistence: %s", this.playerStateService.getStoreDescription());
 
         if (this.runtimeManaged) {
             restartRuntimeRenderer();
@@ -120,6 +132,10 @@ public class HyPerksCoreService {
 
     public void flush() {
         this.playerStateService.flush();
+    }
+
+    public void close() {
+        this.playerStateService.close();
     }
 
     public synchronized void startRuntime() {
@@ -138,6 +154,17 @@ public class HyPerksCoreService {
     }
 
     public void showMenu(CommandContext context) {
+        boolean guiOpened = false;
+        if (context.isPlayer() && this.config.getMenu().isGuiEnabled()) {
+            guiOpened = tryOpenMenuGui(context.senderAs(Player.class));
+            if (guiOpened) {
+                send(context, "cmd.menu.gui_opened");
+            } else if (!this.config.getMenu().isGuiFallbackToChat()) {
+                send(context, "cmd.menu.gui_failed");
+                return;
+            }
+        }
+
         send(context, "cmd.menu.title");
         send(context, "cmd.menu.line", "menu");
         send(context, "cmd.menu.line", "list [category]");
@@ -145,8 +172,17 @@ public class HyPerksCoreService {
         send(context, "cmd.menu.line", "unequip <category>");
         send(context, "cmd.menu.line", "active");
         send(context, "cmd.menu.line", "lang <en|fr>");
+        send(context, "cmd.menu.line", "refreshperms");
         send(context, "cmd.menu.line", "status");
         send(context, "cmd.menu.line", "reload");
+        if (guiOpened) {
+            send(context, "cmd.menu.gui_hint");
+        }
+
+        for (CosmeticCategory category : CosmeticCategory.values()) {
+            int loaded = this.byCategory.getOrDefault(category, Map.of()).size();
+            send(context, "cmd.menu.category_line", category.getId(), loaded);
+        }
         send(context, "cmd.menu.categories", categorySummary());
     }
 
@@ -155,7 +191,12 @@ public class HyPerksCoreService {
         send(context, "cmd.status.runtime_enabled", this.config.isRuntimeRenderingEnabled());
         send(context, "cmd.status.runtime_interval", this.config.getRuntimeRenderIntervalMs());
         send(context, "cmd.status.runtime_active", this.isRuntimeRunning());
+        send(context, "cmd.status.command_cooldown", this.config.getCommandCooldownMs());
+        send(context, "cmd.status.permission_cache_ttl", this.config.getPermissionCacheTtlMs());
+        send(context, "cmd.status.permission_cache_entries", this.permissionCache.size());
+        send(context, "cmd.status.player_cache_entries", this.playerStateService.getCachedProfileCount());
         send(context, "cmd.status.cosmetics_loaded", this.catalog.getCosmetics().size());
+        send(context, "cmd.status.persistence", this.playerStateService.getStoreDescription());
         send(
             context,
             "cmd.status.worlds",
@@ -213,6 +254,14 @@ public class HyPerksCoreService {
                     cosmetic.getEffectId()
                 )
             );
+
+            if (this.config.isDetailedCosmeticDescriptions()) {
+                String descriptionKey = cosmetic.getNameKey().replace(".name", ".desc");
+                String description = tr(sender, descriptionKey);
+                if (!descriptionKey.equals(description)) {
+                    sendRaw(context, "  > " + description);
+                }
+            }
         }
     }
 
@@ -321,6 +370,70 @@ public class HyPerksCoreService {
         send(context, "cmd.lang.success", locale);
     }
 
+    public boolean checkCommandCooldown(CommandContext context) {
+        if (!context.isPlayer()) {
+            return true;
+        }
+
+        int cooldownMs = this.config.getCommandCooldownMs();
+        if (cooldownMs <= 0) {
+            return true;
+        }
+
+        CommandSender sender = context.sender();
+        if (sender.hasPermission("hyperks.admin.cooldown.bypass")) {
+            return true;
+        }
+
+        UUID playerUuid = sender.getUuid();
+        if (playerUuid == null) {
+            return true;
+        }
+
+        long now = System.currentTimeMillis();
+        long[] remaining = new long[1];
+
+        this.commandUsageTracker.compute(playerUuid, (ignored, lastAt) -> {
+            if (lastAt == null) {
+                return now;
+            }
+
+            long elapsed = now - lastAt;
+            if (elapsed >= cooldownMs) {
+                return now;
+            }
+
+            remaining[0] = cooldownMs - elapsed;
+            return lastAt;
+        });
+
+        if (remaining[0] <= 0L) {
+            return true;
+        }
+
+        double seconds = remaining[0] / 1000.0D;
+        send(context, "error.cooldown", String.format(Locale.ROOT, "%.1f", seconds));
+        return false;
+    }
+
+    public void refreshPermissionCache(CommandContext context) {
+        if (!context.isPlayer()) {
+            if (!context.sender().hasPermission("hyperks.admin.permission.refresh")) {
+                send(context, "error.no_permission");
+                return;
+            }
+            this.permissionCache.clear();
+            send(context, "cmd.permission_refresh.global");
+            return;
+        }
+
+        UUID playerUuid = context.sender().getUuid();
+        if (playerUuid != null) {
+            invalidatePermissionCache(playerUuid);
+        }
+        send(context, "cmd.permission_refresh.self");
+    }
+
     public void onPlayerReady(PlayerReadyEvent event) {
         Player player = event.getPlayer();
         if (player == null) {
@@ -332,7 +445,9 @@ public class HyPerksCoreService {
             return;
         }
 
-        PlayerState state = this.playerStateService.get(playerUuid);
+        invalidatePermissionCache(playerUuid);
+        this.playerStateService.invalidate(playerUuid);
+        PlayerState state = this.playerStateService.refresh(playerUuid);
 
         if (this.config.isAutoShowMenuHintOnJoin()) {
             player.sendMessage(Message.raw(tr(player, "join.hint")));
@@ -418,7 +533,10 @@ public class HyPerksCoreService {
 
         long frame = this.renderFrame.incrementAndGet();
         if (frame % 40L == 0L) {
-            pruneOldTrackers(System.currentTimeMillis());
+            long nowMs = System.currentTimeMillis();
+            pruneOldTrackers(nowMs);
+            pruneOldCommandTrackers(nowMs);
+            prunePermissionCache(nowMs);
         }
 
         Collection<World> worlds = new ArrayList<>(universe.getWorlds().values());
@@ -474,6 +592,8 @@ public class HyPerksCoreService {
         tracker.lastSeenMs = nowMs;
 
         renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.AURAS);
+        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.AURAS_PREMIUM);
+        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.TRAILS);
         renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.FOOTPRINTS);
         renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.FLOATING_BADGES);
         renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.TROPHY_BADGES);
@@ -505,6 +625,8 @@ public class HyPerksCoreService {
 
         switch (category) {
             case AURAS -> renderAura(effectId, cosmetic, position, store, frame);
+            case AURAS_PREMIUM -> renderPremiumAura(effectId, cosmetic, position, store, frame);
+            case TRAILS -> renderTrail(effectId, cosmetic, position, store, frame);
             case FOOTPRINTS -> renderFootprints(effectId, position, store, tracker, nowMs);
             case FLOATING_BADGES -> renderFloatingBadge(effectId, cosmetic, position, store, frame);
             case TROPHY_BADGES -> renderTrophyBadge(effectId, cosmetic, position, store, frame);
@@ -540,6 +662,89 @@ public class HyPerksCoreService {
             double z = position.z + Math.sin(angle) * radius;
             spawnParticle(effectId, x, y, z, store);
         }
+    }
+
+    private void renderPremiumAura(
+        String effectId,
+        CosmeticDefinition cosmetic,
+        Vector3d position,
+        Store<EntityStore> store,
+        long frame
+    ) {
+        String style = cosmetic.getRenderStyle();
+        double phase = frame * 0.17D;
+        double yBase = position.y + 2.05D;
+
+        if ("crown".equals(style)) {
+            double radius = 0.42D;
+            for (int i = 0; i < 4; i++) {
+                double angle = phase + (Math.PI * 2D * i / 4D);
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(angle) * radius,
+                    yBase + Math.sin(phase + i) * 0.08D,
+                    position.z + Math.sin(angle) * radius,
+                    store
+                );
+            }
+            if ((frame % 2L) == 0L) {
+                spawnParticle(effectId, position.x, yBase + 0.35D, position.z, store);
+            }
+            return;
+        }
+
+        if ("pillar".equals(style)) {
+            for (int i = 0; i < 3; i++) {
+                double y = position.y + 0.35D + (i * 0.65D) + Math.sin((frame + i) * 0.15D) * 0.06D;
+                spawnParticle(effectId, position.x, y, position.z, store);
+            }
+            return;
+        }
+
+        double radius = 0.62D;
+        for (int i = 0; i < 5; i++) {
+            double angle = phase + (Math.PI * 2D * i / 5D);
+            double y = yBase + Math.sin(phase + i) * 0.12D;
+            spawnParticle(effectId, position.x + Math.cos(angle) * radius, y, position.z + Math.sin(angle) * radius, store);
+        }
+    }
+
+    private void renderTrail(
+        String effectId,
+        CosmeticDefinition cosmetic,
+        Vector3d position,
+        Store<EntityStore> store,
+        long frame
+    ) {
+        String style = cosmetic.getRenderStyle();
+        double sway = Math.sin(frame * 0.25D) * 0.18D;
+        double baseY = position.y + 0.08D;
+
+        if ("spiral".equals(style)) {
+            double phase = frame * 0.32D;
+            double radius = 0.22D;
+            spawnParticle(effectId, position.x + Math.cos(phase) * radius, baseY, position.z + Math.sin(phase) * radius, store);
+            spawnParticle(
+                effectId,
+                position.x + Math.cos(phase + Math.PI) * radius,
+                baseY + 0.04D,
+                position.z + Math.sin(phase + Math.PI) * radius,
+                store
+            );
+            return;
+        }
+
+        if ("spark".equals(style)) {
+            spawnParticle(effectId, position.x + sway, baseY, position.z, store);
+            if ((frame % 2L) == 0L) {
+                spawnParticle(effectId, position.x - sway, baseY + 0.05D, position.z, store);
+            }
+            return;
+        }
+
+        double phase = frame * 0.20D;
+        spawnParticle(effectId, position.x + Math.cos(phase) * 0.12D, baseY, position.z + Math.sin(phase) * 0.12D, store);
+        spawnParticle(effectId, position.x - Math.cos(phase) * 0.12D, baseY + 0.03D, position.z - Math.sin(phase) * 0.12D, store);
     }
 
     private void renderFootprints(
@@ -790,13 +995,94 @@ public class HyPerksCoreService {
     }
 
     private boolean hasCosmeticPermission(CommandSender sender, CosmeticDefinition cosmetic) {
-        if (sender.hasPermission(cosmetic.getPermission())) {
+        if (hasPermissionCached(sender, cosmetic.getPermission())) {
             return true;
         }
-        if (sender.hasPermission("hyperks.cosmetic.*")) {
+        if (hasPermissionCached(sender, "hyperks.cosmetic.*")) {
             return true;
         }
-        return sender.hasPermission("hyperks.cosmetic." + cosmetic.getCategory() + ".*");
+        return hasPermissionCached(sender, "hyperks.cosmetic." + cosmetic.getCategory() + ".*");
+    }
+
+    private boolean hasPermissionCached(CommandSender sender, String permissionNode) {
+        int ttlMs = this.config.getPermissionCacheTtlMs();
+        if (ttlMs <= 0) {
+            return sender.hasPermission(permissionNode);
+        }
+
+        UUID senderUuid = sender.getUuid();
+        if (senderUuid == null) {
+            return sender.hasPermission(permissionNode);
+        }
+
+        long nowMs = System.currentTimeMillis();
+        PermissionCacheKey key = new PermissionCacheKey(senderUuid, permissionNode);
+        PermissionCacheValue cached = this.permissionCache.get(key);
+        if (cached != null && cached.expiresAtMs >= nowMs) {
+            return cached.allowed;
+        }
+
+        boolean allowed = sender.hasPermission(permissionNode);
+        this.permissionCache.put(key, new PermissionCacheValue(allowed, nowMs + ttlMs, nowMs));
+        return allowed;
+    }
+
+    private void invalidatePermissionCache(UUID playerUuid) {
+        if (playerUuid == null) {
+            return;
+        }
+
+        this.permissionCache.entrySet().removeIf(entry -> entry.getKey().playerUuid.equals(playerUuid));
+    }
+
+    private void pruneOldCommandTrackers(long nowMs) {
+        this.commandUsageTracker.entrySet().removeIf(entry -> (nowMs - entry.getValue()) > COMMAND_TRACKER_RETENTION_MS);
+    }
+
+    private void prunePermissionCache(long nowMs) {
+        this.permissionCache.entrySet().removeIf(entry -> {
+            PermissionCacheValue value = entry.getValue();
+            if (value.expiresAtMs < nowMs) {
+                return true;
+            }
+            return (nowMs - value.cachedAtMs) > PERMISSION_CACHE_RETENTION_MS;
+        });
+    }
+
+    private boolean tryOpenMenuGui(Player player) {
+        if (player == null || player.getWorld() == null || player.getReference() == null) {
+            return false;
+        }
+
+        World world = player.getWorld();
+
+        try {
+            world.execute(() -> {
+                try {
+                    if (player.getPageManager() == null || player.getReference() == null) {
+                        return;
+                    }
+
+                    Store<EntityStore> store = world.getEntityStore().getStore();
+                    PlayerRef playerRef = store.getComponent(player.getReference(), PlayerRef.getComponentType());
+                    if (playerRef == null || !playerRef.isValid() || playerRef.getReference() == null) {
+                        return;
+                    }
+
+                    player.getPageManager().openCustomPage(
+                        playerRef.getReference(),
+                        store,
+                        new CommandListPage(playerRef, this.config.getMenu().getGuiCommandSeed())
+                    );
+                } catch (Exception ex) {
+                    this.logger.atWarning().withCause(ex).log("[HyPerks] Could not open GUI menu for a player.");
+                }
+            });
+            return true;
+        } catch (Exception ex) {
+            this.logger.atWarning().withCause(ex).log("[HyPerks] Failed to schedule GUI menu opening.");
+            return false;
+        }
     }
 
     private UUID resolvePlayerUuid(PlayerReadyEvent event, Player player) {
@@ -842,6 +1128,44 @@ public class HyPerksCoreService {
             Thread thread = new Thread(task, RENDER_THREAD_NAME);
             thread.setDaemon(true);
             return thread;
+        }
+    }
+
+    private static final class PermissionCacheKey {
+        private final UUID playerUuid;
+        private final String permissionNode;
+
+        private PermissionCacheKey(UUID playerUuid, String permissionNode) {
+            this.playerUuid = playerUuid;
+            this.permissionNode = permissionNode;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof PermissionCacheKey that)) {
+                return false;
+            }
+            return this.playerUuid.equals(that.playerUuid) && this.permissionNode.equals(that.permissionNode);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.playerUuid, this.permissionNode);
+        }
+    }
+
+    private static final class PermissionCacheValue {
+        private final boolean allowed;
+        private final long expiresAtMs;
+        private final long cachedAtMs;
+
+        private PermissionCacheValue(boolean allowed, long expiresAtMs, long cachedAtMs) {
+            this.allowed = allowed;
+            this.expiresAtMs = expiresAtMs;
+            this.cachedAtMs = cachedAtMs;
         }
     }
 

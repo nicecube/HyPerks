@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -18,6 +19,10 @@ import java.util.Map;
 
 public class LocalizationService {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
+    private static final Gson WRITER = new GsonBuilder()
+        .disableHtmlEscaping()
+        .setPrettyPrinting()
+        .create();
     private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() {}.getType();
 
     private final HytaleLogger logger;
@@ -32,8 +37,8 @@ public class LocalizationService {
     public void loadOrCreateDefaults() {
         try {
             Files.createDirectories(this.langDirectory);
-            copyResourceIfMissing("lang/en.json", this.langDirectory.resolve("en.json"));
-            copyResourceIfMissing("lang/fr.json", this.langDirectory.resolve("fr.json"));
+            ensureLocaleFile("lang/en.json", this.langDirectory.resolve("en.json"));
+            ensureLocaleFile("lang/fr.json", this.langDirectory.resolve("fr.json"));
 
             this.bundles.clear();
             Files.list(this.langDirectory)
@@ -96,6 +101,47 @@ public class LocalizationService {
                 throw new IllegalStateException("Missing bundled resource: " + resourcePath);
             }
             Files.copy(stream, destination);
+        }
+    }
+
+    private void ensureLocaleFile(String resourcePath, Path destination) throws IOException {
+        copyResourceIfMissing(resourcePath, destination);
+
+        Map<String, String> bundled = readBundleFromResource(resourcePath);
+        Map<String, String> current = readBundleFromFile(destination);
+        boolean changed = false;
+
+        for (Map.Entry<String, String> entry : bundled.entrySet()) {
+            if (!current.containsKey(entry.getKey())) {
+                current.put(entry.getKey(), entry.getValue());
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            Files.writeString(destination, WRITER.toJson(current), StandardCharsets.UTF_8);
+            this.logger.atInfo().log("[HyPerks] Added missing localization keys in %s", destination.getFileName());
+        }
+    }
+
+    private Map<String, String> readBundleFromResource(String resourcePath) throws IOException {
+        try (InputStream stream = LocalizationService.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (stream == null) {
+                throw new IllegalStateException("Missing bundled resource: " + resourcePath);
+            }
+            String json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            Map<String, String> values = GSON.fromJson(json, MAP_TYPE);
+            return values == null ? new HashMap<>() : new HashMap<>(values);
+        }
+    }
+
+    private Map<String, String> readBundleFromFile(Path destination) {
+        try (Reader reader = Files.newBufferedReader(destination)) {
+            Map<String, String> values = GSON.fromJson(reader, MAP_TYPE);
+            return values == null ? new HashMap<>() : new HashMap<>(values);
+        } catch (Exception ex) {
+            this.logger.atWarning().withCause(ex).log("[HyPerks] Failed to parse locale file %s. Recreating.", destination);
+            return new HashMap<>();
         }
     }
 

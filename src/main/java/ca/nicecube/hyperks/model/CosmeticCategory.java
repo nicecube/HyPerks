@@ -4,6 +4,8 @@ import java.util.Locale;
 
 public enum CosmeticCategory {
     AURAS("auras"),
+    AURAS_PREMIUM("auras_premium"),
+    TRAILS("trails"),
     FOOTPRINTS("footprints"),
     FLOATING_BADGES("floating_badges"),
     TROPHY_BADGES("trophy_badges");

@@ -36,6 +36,56 @@ public class CosmeticCatalog {
         ));
 
         catalog.cosmetics.add(c(
+            "vip_aura",
+            "auras_premium",
+            "Server/Particles/HyPerks/PremiumAuras/VIP_Aura.particlesystem",
+            "orbit"
+        ));
+        catalog.cosmetics.add(c(
+            "vip_plus_aura",
+            "auras_premium",
+            "Server/Particles/HyPerks/PremiumAuras/VIPPlus_Aura.particlesystem",
+            "crown"
+        ));
+        catalog.cosmetics.add(c(
+            "mvp_aura",
+            "auras_premium",
+            "Server/Particles/HyPerks/PremiumAuras/MVP_Aura.particlesystem",
+            "pillar"
+        ));
+        catalog.cosmetics.add(c(
+            "mvp_plus_aura",
+            "auras_premium",
+            "Server/Particles/HyPerks/PremiumAuras/MVPPlus_Aura.particlesystem",
+            "crown"
+        ));
+
+        catalog.cosmetics.add(c(
+            "vip_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/VIP_Trail.particlesystem",
+            "stream"
+        ));
+        catalog.cosmetics.add(c(
+            "vip_plus_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/VIPPlus_Trail.particlesystem",
+            "spark"
+        ));
+        catalog.cosmetics.add(c(
+            "mvp_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/MVP_Trail.particlesystem",
+            "spiral"
+        ));
+        catalog.cosmetics.add(c(
+            "mvp_plus_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/MVPPlus_Trail.particlesystem",
+            "spiral"
+        ));
+
+        catalog.cosmetics.add(c(
             "flame_steps",
             "footprints",
             "Server/Particles/Block/Lava/Block_Run_Lava.particlesystem",
@@ -128,6 +178,14 @@ public class CosmeticCatalog {
             String key = cosmetic.getCategory() + ":" + cosmetic.getId();
             if (unique.add(key)) {
                 normalized.add(cosmetic);
+            }
+        }
+
+        // Keep custom entries, but automatically inject missing defaults during upgrades.
+        for (CosmeticDefinition fallback : defaults().getCosmetics()) {
+            String key = fallback.getCategory() + ":" + fallback.getId();
+            if (unique.add(key)) {
+                normalized.add(fallback);
             }
         }
 

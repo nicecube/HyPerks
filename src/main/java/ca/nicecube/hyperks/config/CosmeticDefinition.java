@@ -137,6 +137,8 @@ public class CosmeticDefinition {
     private String defaultEffectId(String category) {
         return switch (category) {
             case "auras" -> "Server/Particles/Combat/Impact/Misc/Fire/Impact_Fire.particlesystem";
+            case "auras_premium" -> "Server/Particles/HyPerks/PremiumAuras/VIP_Aura.particlesystem";
+            case "trails" -> "Server/Particles/HyPerks/Trails/VIP_Trail.particlesystem";
             case "footprints" -> "Server/Particles/Block/Sand/Block_Run_Sand.particlesystem";
             case "floating_badges" -> "Server/Particles/HyPerks/RankTags/VIP_Stream.particlesystem";
             case "trophy_badges" -> "Server/Particles/HyPerks/Trophies/Season_Champion_Crown.particlesystem";
@@ -156,6 +158,8 @@ public class CosmeticDefinition {
         }
 
         return switch (category) {
+            case "auras_premium" -> "crown";
+            case "trails" -> "stream";
             case "footprints" -> "steps";
             case "floating_badges" -> "rank_stream";
             case "trophy_badges" -> "crown";

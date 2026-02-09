@@ -6,6 +6,7 @@ val hytaleServerJarPath = providers.gradleProperty("hytale.server.jar")
     .orElse("HystaleJar/HytaleServer.jar")
     .get()
 val hytaleServerJar = layout.projectDirectory.file(hytaleServerJarPath).asFile
+val bundledRuntime by configurations.creating
 
 if (!hytaleServerJar.exists()) {
     throw GradleException(
@@ -27,9 +28,19 @@ repositories {
 dependencies {
     // Local Hytale server API jar (override with -Phytale.server.jar=...).
     compileOnly(files(hytaleServerJar))
+
+    // Embedded runtime dependencies for SQL persistence backends.
+    bundledRuntime("org.xerial:sqlite-jdbc:3.49.1.0")
+    bundledRuntime("com.mysql:mysql-connector-j:9.3.0")
 }
 
 tasks.named<Jar>("jar") {
     // Bundle custom asset pack files into the plugin jar.
     from(layout.projectDirectory.dir("assets"))
+
+    // Bundle SQL drivers so sqlite/mysql modes work without extra files.
+    from(bundledRuntime.map { if (it.isDirectory) it else zipTree(it) }) {
+        exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

@@ -28,7 +28,12 @@ public class HyPerksPlugin extends JavaPlugin {
 
         JsonConfigStore configStore = new JsonConfigStore(this.getLogger());
         LocalizationService localization = new LocalizationService(this.getLogger(), paths.getLangDirectory());
-        PlayerStateService playerStateService = new PlayerStateService(this.getLogger(), paths.getPlayersDirectory(), configStore);
+        PlayerStateService playerStateService = new PlayerStateService(
+            this.getLogger(),
+            paths.getRootDirectory(),
+            paths.getPlayersDirectory(),
+            configStore
+        );
 
         this.coreService = new HyPerksCoreService(
             this.getLogger(),
@@ -58,6 +63,7 @@ public class HyPerksPlugin extends JavaPlugin {
         if (this.coreService != null) {
             this.coreService.stopRuntime();
             this.coreService.flush();
+            this.coreService.close();
         }
         this.getLogger().atInfo().log("[%s] Disabled.", this.getName());
     }
