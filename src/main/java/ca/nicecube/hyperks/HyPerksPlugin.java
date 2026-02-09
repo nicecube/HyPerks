@@ -1,0 +1,55 @@
+package ca.nicecube.hyperks;
+
+import ca.nicecube.hyperks.command.HyPerksCommand;
+import ca.nicecube.hyperks.event.PlayerReadyListener;
+import ca.nicecube.hyperks.service.HyPerksCoreService;
+import ca.nicecube.hyperks.service.HyPerksPaths;
+import ca.nicecube.hyperks.service.JsonConfigStore;
+import ca.nicecube.hyperks.service.LocalizationService;
+import ca.nicecube.hyperks.service.PlayerStateService;
+import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
+import com.hypixel.hytale.server.core.plugin.JavaPlugin;
+import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+
+import javax.annotation.Nonnull;
+import java.nio.file.Path;
+
+public class HyPerksPlugin extends JavaPlugin {
+    private HyPerksCoreService coreService;
+
+    public HyPerksPlugin(@Nonnull JavaPluginInit init) {
+        super(init);
+    }
+
+    @Override
+    protected void setup() {
+        Path dataDirectory = HyPerksPaths.resolveDataDirectory(this.getDataDirectory(), "HyPerks");
+        HyPerksPaths paths = HyPerksPaths.fromRoot(dataDirectory);
+
+        JsonConfigStore configStore = new JsonConfigStore(this.getLogger());
+        LocalizationService localization = new LocalizationService(this.getLogger(), paths.getLangDirectory());
+        PlayerStateService playerStateService = new PlayerStateService(this.getLogger(), paths.getPlayersDirectory(), configStore);
+
+        this.coreService = new HyPerksCoreService(
+            this.getLogger(),
+            paths,
+            localization,
+            configStore,
+            playerStateService
+        );
+        this.coreService.reload();
+
+        this.getCommandRegistry().registerCommand(new HyPerksCommand(this.coreService));
+        this.getEventRegistry().registerGlobal(PlayerReadyEvent.class, new PlayerReadyListener(this.coreService)::onPlayerReady);
+
+        this.getLogger().atInfo().log("[%s] Enabled. Data folder: %s", this.getName(), dataDirectory.toAbsolutePath());
+    }
+
+    @Override
+    protected void shutdown() {
+        if (this.coreService != null) {
+            this.coreService.flush();
+        }
+        this.getLogger().atInfo().log("[%s] Disabled.", this.getName());
+    }
+}

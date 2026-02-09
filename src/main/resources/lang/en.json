@@ -1,0 +1,47 @@
+{
+  "cmd.menu.title": "=== HyPerks Cosmetics ===",
+  "cmd.menu.line": "/hyperks {0}",
+  "cmd.menu.categories": "Categories loaded: {0}",
+  "cmd.list.title": "Cosmetics list ({0}) - {1} entries",
+  "cmd.list.empty": "No cosmetics found.",
+  "cmd.equip.success": "Equipped: {0}",
+  "cmd.unequip.success": "Unequipped category: {0}",
+  "cmd.active.title": "Your active cosmetics:",
+  "cmd.active.none": "No cosmetic equipped.",
+  "cmd.lang.success": "Language set to: {0}",
+  "cmd.reload.success": "HyPerks reloaded.",
+  "join.hint": "Use /hyperks menu to open the cosmetics command menu.",
+  "join.active_loaded": "Loaded {0} active cosmetic selection(s).",
+
+  "status.locked": "Locked",
+  "status.unlocked": "Unlocked",
+
+  "error.no_permission": "You do not have permission for this action.",
+  "error.player_only": "This command can only be used by a player.",
+  "error.usage": "Usage: {0}",
+  "error.action_not_found": "Unknown action: {0}",
+  "error.category_not_found": "Unknown category: {0}",
+  "error.cosmetic_not_found": "Cosmetic not found: {0}/{1}",
+  "error.world_not_allowed": "Cosmetics are disabled in your current world.",
+  "error.locale_unsupported": "Unsupported locale: {0}. Allowed: en, fr",
+
+  "cosmetic.auras.ember_halo.name": "Ember Halo",
+  "cosmetic.auras.void_orbit.name": "Void Orbit",
+  "cosmetic.auras.angel_wings.name": "Angel Wings",
+  "cosmetic.auras.heart_bloom.name": "Heart Bloom",
+
+  "cosmetic.footprints.flame_steps.name": "Flame Steps",
+  "cosmetic.footprints.frost_steps.name": "Frost Steps",
+  "cosmetic.footprints.heart_steps.name": "Heart Steps",
+  "cosmetic.footprints.rune_steps.name": "Rune Steps",
+
+  "cosmetic.floating_badges.vip_gold.name": "VIP Gold Badge",
+  "cosmetic.floating_badges.vip_plus_platinum.name": "VIP+ Platinum Badge",
+  "cosmetic.floating_badges.mvp_diamond.name": "MVP Diamond Badge",
+  "cosmetic.floating_badges.founder_crest.name": "Founder Crest",
+
+  "cosmetic.trophy_badges.season1_champion.name": "Season 1 Champion",
+  "cosmetic.trophy_badges.ranked_top10.name": "Ranked Top 10",
+  "cosmetic.trophy_badges.event_winner.name": "Event Winner",
+  "cosmetic.trophy_badges.beta_veteran.name": "Beta Veteran"
+}

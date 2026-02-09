@@ -1,0 +1,47 @@
+{
+  "cmd.menu.title": "=== Cosmetiques HyPerks ===",
+  "cmd.menu.line": "/hyperks {0}",
+  "cmd.menu.categories": "Categories chargees : {0}",
+  "cmd.list.title": "Liste des cosmetiques ({0}) - {1} elements",
+  "cmd.list.empty": "Aucun cosmetique trouve.",
+  "cmd.equip.success": "Equipe : {0}",
+  "cmd.unequip.success": "Categorie retiree : {0}",
+  "cmd.active.title": "Tes cosmetiques actifs :",
+  "cmd.active.none": "Aucun cosmetique equipe.",
+  "cmd.lang.success": "Langue definie sur : {0}",
+  "cmd.reload.success": "HyPerks recharge.",
+  "join.hint": "Utilise /hyperks menu pour ouvrir le menu des commandes cosmetiques.",
+  "join.active_loaded": "{0} selection(s) cosmetique(s) active(s) chargee(s).",
+
+  "status.locked": "Verrouille",
+  "status.unlocked": "Debloque",
+
+  "error.no_permission": "Tu n'as pas la permission pour cette action.",
+  "error.player_only": "Cette commande est reservee aux joueurs.",
+  "error.usage": "Usage : {0}",
+  "error.action_not_found": "Action inconnue : {0}",
+  "error.category_not_found": "Categorie inconnue : {0}",
+  "error.cosmetic_not_found": "Cosmetique introuvable : {0}/{1}",
+  "error.world_not_allowed": "Les cosmetiques sont desactives dans ton monde actuel.",
+  "error.locale_unsupported": "Langue non supportee : {0}. Autorisees : en, fr",
+
+  "cosmetic.auras.ember_halo.name": "Halo de braise",
+  "cosmetic.auras.void_orbit.name": "Orbite du vide",
+  "cosmetic.auras.angel_wings.name": "Ailes d'ange",
+  "cosmetic.auras.heart_bloom.name": "Eclosion de coeurs",
+
+  "cosmetic.footprints.flame_steps.name": "Pas enflammes",
+  "cosmetic.footprints.frost_steps.name": "Pas de givre",
+  "cosmetic.footprints.heart_steps.name": "Pas de coeurs",
+  "cosmetic.footprints.rune_steps.name": "Pas runiques",
+
+  "cosmetic.floating_badges.vip_gold.name": "Badge VIP or",
+  "cosmetic.floating_badges.vip_plus_platinum.name": "Badge VIP+ platine",
+  "cosmetic.floating_badges.mvp_diamond.name": "Badge MVP diamant",
+  "cosmetic.floating_badges.founder_crest.name": "Ecusson fondateur",
+
+  "cosmetic.trophy_badges.season1_champion.name": "Champion Saison 1",
+  "cosmetic.trophy_badges.ranked_top10.name": "Top 10 classe",
+  "cosmetic.trophy_badges.event_winner.name": "Gagnant d'evenement",
+  "cosmetic.trophy_badges.beta_veteran.name": "Veteran beta"
+}

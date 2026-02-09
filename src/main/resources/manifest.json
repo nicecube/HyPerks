@@ -1,0 +1,20 @@
+{
+    "Group": "ca.nicecube",
+    "Name": "HyPerks",
+    "Version": "0.1.0",
+    "Description": "VIP cosmetics framework with permissions and multi-language support.",
+    "Authors": [
+        {
+            "Name": "nicecube",
+            "Email": "contact@nicecube.ca",
+            "Url": "https://nicecube.ca"
+        }
+    ],
+    "Website": "https://nicecube.ca",
+    "DisabledByDefault": false,
+    "IncludesAssetPack": false,
+    "Dependencies": {},
+    "OptionalDependencies": {},
+    "ServerVersion": "*",
+    "Main": "ca.nicecube.hyperks.HyPerksPlugin"
+}
