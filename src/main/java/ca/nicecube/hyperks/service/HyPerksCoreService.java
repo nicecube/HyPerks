@@ -440,7 +440,7 @@ public class HyPerksCoreService {
             return;
         }
 
-        UUID playerUuid = resolvePlayerUuid(event, player);
+        UUID playerUuid = resolvePlayerUuid(player);
         if (playerUuid == null) {
             return;
         }
@@ -1085,19 +1085,12 @@ public class HyPerksCoreService {
         }
     }
 
-    private UUID resolvePlayerUuid(PlayerReadyEvent event, Player player) {
-        if (player.getWorld() == null) {
+    private UUID resolvePlayerUuid(Player player) {
+        if (player == null) {
             return null;
         }
-
-        PlayerRef playerRef = player.getWorld()
-            .getEntityStore()
-            .getStore()
-            .getComponent(event.getPlayerRef(), PlayerRef.getComponentType());
-        if (playerRef != null) {
-            return playerRef.getUuid();
-        }
-        return null;
+        CommandSender sender = player;
+        return sender.getUuid();
     }
 
     private String normalizeId(String input) {
