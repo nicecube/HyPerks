@@ -56,7 +56,7 @@ Group {
 
     Group #CosmeticList {
       FlexWeight: 1;
-      LayoutMode: TopScrolling;
+      LayoutMode: Top;
       Padding: (Left: 12);
 
       Label #ActiveEffect {
@@ -82,6 +82,11 @@ Group {
           TextColor: #ffffff(0.65)
         );
         Anchor: (Bottom: 10);
+      }
+
+      Group #EntryList {
+        FlexWeight: 1;
+        LayoutMode: TopScrolling;
       }
     }
   }

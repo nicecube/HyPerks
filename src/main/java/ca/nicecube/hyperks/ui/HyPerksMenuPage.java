@@ -24,7 +24,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
     private static final String TAB_UI_FILE = "Pages/HyPerksMenuTabButton.ui";
     private static final String ENTRY_UI_FILE = "Pages/HyPerksMenuEntryButton.ui";
     private static final String TAB_ROOT = "#TabList";
-    private static final String LIST_ROOT = "#CosmeticList";
+    private static final String LIST_ROOT = "#EntryList";
     private static final String ACTIVE_EFFECT_LABEL = "#ActiveEffect";
     private static final String ACTIVE_COUNT_LABEL = "#ActiveCount";
     private static final String HINT_LABEL = "#HintLine";
