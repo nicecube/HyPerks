@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
@@ -28,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,11 +51,17 @@ public class HyPerksCoreService {
     private static final String UNRESOLVED_EFFECT_ID = "";
     private static final String RENDER_THREAD_NAME = "HyPerks-Renderer";
 
-    private static final long FOOTPRINT_MIN_INTERVAL_MS = 180L;
-    private static final double FOOTPRINT_MIN_MOVE_SQUARED = 0.16D;
+    private static final Set<CosmeticCategory> MULTI_ACTIVE_CATEGORIES = Set.of(
+        CosmeticCategory.FLOATING_BADGES,
+        CosmeticCategory.TROPHY_BADGES
+    );
+
+    private static final long FOOTPRINT_MIN_INTERVAL_MS = 120L;
+    private static final double FOOTPRINT_MIN_MOVE_SQUARED = 0.005D;
     private static final long TRACKER_RETENTION_MS = 300_000L;
     private static final long COMMAND_TRACKER_RETENTION_MS = 600_000L;
     private static final long PERMISSION_CACHE_RETENTION_MS = 180_000L;
+    private static final Map<CosmeticCategory, Map<String, Integer>> COSMETIC_ORDER = createCosmeticOrder();
 
     private final HytaleLogger logger;
     private final HyPerksPaths paths;
@@ -348,7 +356,11 @@ public class HyPerksCoreService {
 
         UUID playerUuid = context.sender().getUuid();
         PlayerState state = this.playerStateService.get(playerUuid);
-        state.setActive(category.getId(), cosmetic.getId());
+        if (supportsMultiActive(category)) {
+            state.addActive(category.getId(), cosmetic.getId());
+        } else {
+            state.setActive(category.getId(), cosmetic.getId());
+        }
         this.playerStateService.save(playerUuid);
         send(context, "cmd.equip.success", tr(player, cosmetic.getNameKey()));
     }
@@ -380,7 +392,7 @@ public class HyPerksCoreService {
 
         Player player = context.senderAs(Player.class);
         PlayerState state = this.playerStateService.get(context.sender().getUuid());
-        Map<String, String> active = new LinkedHashMap<>(state.getAllActive());
+        Map<String, List<String>> active = new LinkedHashMap<>(state.getAllActiveMulti());
 
         send(context, "cmd.active.title");
         if (active.isEmpty()) {
@@ -389,13 +401,17 @@ public class HyPerksCoreService {
         }
 
         for (CosmeticCategory category : CosmeticCategory.values()) {
-            String selected = active.get(category.getId());
-            if (selected == null) {
+            List<String> selected = active.get(category.getId());
+            if (selected == null || selected.isEmpty()) {
                 continue;
             }
-            CosmeticDefinition cosmetic = this.byCategory.getOrDefault(category, Map.of()).get(selected);
-            String cosmeticName = cosmetic == null ? selected : tr(player, cosmetic.getNameKey());
-            sendRaw(context, "- " + category.getId() + ": " + cosmeticName);
+
+            List<String> labels = new ArrayList<>();
+            for (String selectedId : selected) {
+                CosmeticDefinition cosmetic = this.byCategory.getOrDefault(category, Map.of()).get(selectedId);
+                labels.add(cosmetic == null ? selectedId : tr(player, cosmetic.getNameKey()));
+            }
+            sendRaw(context, "- " + category.getId() + ": " + String.join(", ", labels));
         }
     }
 
@@ -423,13 +439,13 @@ public class HyPerksCoreService {
                 continue;
             }
             List<CosmeticDefinition> cosmetics = new ArrayList<>(this.byCategory.getOrDefault(category, Map.of()).values());
-            cosmetics.sort(Comparator.comparing(CosmeticDefinition::getId));
+            sortCosmeticsForCategory(category, cosmetics);
 
             for (CosmeticDefinition cosmetic : cosmetics) {
                 String localizedName = tr(player, cosmetic.getNameKey());
                 boolean unlocked = hasCosmeticPermission(player, cosmetic);
                 boolean active = playerState != null
-                    && cosmetic.getId().equalsIgnoreCase(playerState.getActive(category.getId()));
+                    && playerState.isActive(category.getId(), cosmetic.getId());
 
                 String searchable = (
                     category.getId() + " " + cosmetic.getId() + " " + localizedName
@@ -481,16 +497,17 @@ public class HyPerksCoreService {
         }
 
         PlayerState state = this.playerStateService.get(playerUuid);
-        String activeId = state.getActive(category.getId());
-        if (activeId == null || activeId.isBlank()) {
+        List<String> activeIds = state.getActiveList(category.getId());
+        if (activeIds.isEmpty()) {
             return tr(player, "menu.active.none");
         }
 
-        CosmeticDefinition cosmetic = this.byCategory.getOrDefault(category, Map.of()).get(activeId);
-        if (cosmetic == null) {
-            return activeId;
+        List<String> labels = new ArrayList<>();
+        for (String activeId : activeIds) {
+            CosmeticDefinition cosmetic = this.byCategory.getOrDefault(category, Map.of()).get(activeId);
+            labels.add(cosmetic == null ? activeId : tr(player, cosmetic.getNameKey()));
         }
-        return tr(player, cosmetic.getNameKey());
+        return String.join(", ", labels);
     }
 
     private void setFromMenu(Player player, String categoryId, String cosmeticId, boolean toggleMode) {
@@ -529,15 +546,23 @@ public class HyPerksCoreService {
         }
 
         PlayerState state = this.playerStateService.get(playerUuid);
-        String current = state.getActive(category.getId());
-        if (toggleMode && cosmetic.getId().equalsIgnoreCase(current)) {
-            state.removeActive(category.getId());
+        boolean currentlyActive = state.isActive(category.getId(), cosmetic.getId());
+        if (toggleMode && currentlyActive) {
+            if (supportsMultiActive(category)) {
+                state.removeActive(category.getId(), cosmetic.getId());
+            } else {
+                state.removeActive(category.getId());
+            }
             this.playerStateService.save(playerUuid);
             player.sendMessage(Message.raw(tr(player, "cmd.menu.toggled_off", tr(player, cosmetic.getNameKey()))));
             return;
         }
 
-        state.setActive(category.getId(), cosmetic.getId());
+        if (supportsMultiActive(category)) {
+            state.addActive(category.getId(), cosmetic.getId());
+        } else {
+            state.setActive(category.getId(), cosmetic.getId());
+        }
         this.playerStateService.save(playerUuid);
         player.sendMessage(Message.raw(tr(player, "cmd.equip.success", tr(player, cosmetic.getNameKey()))));
     }
@@ -658,15 +683,16 @@ public class HyPerksCoreService {
                 livePlayer.sendMessage(Message.raw(tr(playerUuid, "join.hint")));
             }
 
-            if (!state.getAllActive().isEmpty()) {
-                livePlayer.sendMessage(Message.raw(tr(playerUuid, "join.active_loaded", state.getAllActive().size())));
+            int activeCount = state.getAllActiveMulti().values().stream().mapToInt(List::size).sum();
+            if (activeCount > 0) {
+                livePlayer.sendMessage(Message.raw(tr(playerUuid, "join.active_loaded", activeCount)));
             }
 
             if (this.config.isDebugMode()) {
                 this.logger.atInfo().log(
                     "[HyPerks] Player ready: %s (active cosmetics=%s)",
                     playerUuid,
-                    state.getAllActive().size()
+                    activeCount
                 );
             }
         });
@@ -798,15 +824,20 @@ public class HyPerksCoreService {
         }
 
         Vector3d position = new Vector3d(transform.getPosition());
+        double yawDegrees = 0.0D;
+        Vector3f rotation = transform.getRotation();
+        if (rotation != null) {
+            yawDegrees = rotation.getYaw();
+        }
         RenderTracker tracker = this.renderTrackers.computeIfAbsent(playerUuid, ignored -> new RenderTracker());
         tracker.lastSeenMs = nowMs;
 
-        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.AURAS);
-        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.AURAS_PREMIUM);
-        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.TRAILS);
-        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.FOOTPRINTS);
-        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.FLOATING_BADGES);
-        renderCategory(player, state, store, position, tracker, nowMs, frame, CosmeticCategory.TROPHY_BADGES);
+        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.AURAS);
+        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.AURAS_PREMIUM);
+        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.TRAILS);
+        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.FOOTPRINTS);
+        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.FLOATING_BADGES);
+        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.TROPHY_BADGES);
     }
 
     private void renderCategory(
@@ -814,103 +845,125 @@ public class HyPerksCoreService {
         PlayerState state,
         Store<EntityStore> store,
         Vector3d position,
+        double yawDegrees,
         RenderTracker tracker,
         long nowMs,
         long frame,
         CosmeticCategory category
     ) {
-        CosmeticDefinition cosmetic = resolveActiveCosmetic(state, category);
-        if (cosmetic == null) {
+        List<CosmeticDefinition> activeCosmetics = resolveActiveCosmetics(state, category);
+        if (activeCosmetics.isEmpty()) {
             return;
         }
 
-        if (!hasCosmeticPermission(player, cosmetic)) {
-            return;
-        }
+        int totalSlots = Math.max(1, activeCosmetics.size());
+        int slot = 0;
+        for (CosmeticDefinition cosmetic : activeCosmetics) {
+            if (cosmetic == null || !hasCosmeticPermission(player, cosmetic)) {
+                continue;
+            }
 
-        String effectId = resolveEffectId(cosmetic.getEffectId());
-        if (effectId.isBlank()) {
-            return;
-        }
+            String effectId = resolveEffectId(cosmetic.getEffectId());
+            if (effectId.isBlank()) {
+                continue;
+            }
 
-        switch (category) {
-            case AURAS -> renderAura(effectId, cosmetic, position, store, frame);
-            case AURAS_PREMIUM -> renderPremiumAura(effectId, cosmetic, position, store, frame);
-            case TRAILS -> renderTrail(effectId, cosmetic, position, store, frame);
-            case FOOTPRINTS -> renderFootprints(effectId, position, store, tracker, nowMs);
-            case FLOATING_BADGES -> renderFloatingBadge(effectId, cosmetic, position, store, frame);
-            case TROPHY_BADGES -> renderTrophyBadge(effectId, cosmetic, position, store, frame);
+            switch (category) {
+                case AURAS -> renderAura(effectId, cosmetic, position, yawDegrees, store, frame);
+                case AURAS_PREMIUM -> renderPremiumAura(effectId, cosmetic, position, store, frame);
+                case TRAILS -> renderTrail(effectId, cosmetic, position, store, frame);
+                case FOOTPRINTS -> renderFootprints(effectId, position, yawDegrees, store, tracker, nowMs);
+                case FLOATING_BADGES -> renderFloatingBadge(effectId, cosmetic, position, store, frame, slot, totalSlots);
+                case TROPHY_BADGES -> renderTrophyBadge(effectId, cosmetic, position, store, frame, slot, totalSlots);
+            }
+
+            slot++;
         }
     }
 
-    private void renderAura(String effectId, CosmeticDefinition cosmetic, Vector3d position, Store<EntityStore> store, long frame) {
+    private void renderAura(
+        String effectId,
+        CosmeticDefinition cosmetic,
+        Vector3d position,
+        double yawDegrees,
+        Store<EntityStore> store,
+        long frame
+    ) {
         String style = cosmetic.getRenderStyle();
         String cosmeticId = cosmetic.getId();
         if ("angel_wings".equals(cosmeticId)) {
-            double flap = Math.sin(frame * 0.10D) * 0.10D;
-            double baseY = position.y + 1.35D + flap;
-            double backZ = position.z - 0.20D;
-            double[][] wingCurve = {
-                {0.22D, 0.12D},
-                {0.34D, 0.26D},
-                {0.48D, 0.40D},
-                {0.60D, 0.34D},
-                {0.50D, 0.16D},
-                {0.36D, 0.05D}
-            };
-            for (double[] point : wingCurve) {
-                double wingX = point[0];
-                double wingY = baseY + point[1];
-                double wingZ = backZ - (point[0] * 0.07D);
-                spawnParticle(effectId, position.x - wingX, wingY, wingZ, store);
-                spawnParticle(effectId, position.x + wingX, wingY, wingZ, store);
+            if ((frame % 3L) != 0L) {
+                return;
             }
-            if ((frame % 2L) == 0L) {
-                spawnParticle(effectId, position.x, position.y + 1.62D + (flap * 0.4D), position.z - 0.12D, store);
+
+            double flap = Math.sin(frame * 0.045D) * 0.035D;
+            double baseY = position.y + 1.32D + flap;
+            double[][] wingCurve = {
+                {0.22D, 0.24D, -0.38D},
+                {0.36D, 0.32D, -0.44D},
+                {0.48D, 0.24D, -0.48D},
+                {0.56D, 0.12D, -0.46D},
+                {0.40D, 0.02D, -0.38D}
+            };
+
+            for (double[] point : wingCurve) {
+                double wingY = baseY + point[1];
+                spawnRotatedParticle(effectId, position, -point[0], wingY - position.y, point[2], yawDegrees, store);
+                spawnRotatedParticle(effectId, position, point[0], wingY - position.y, point[2], yawDegrees, store);
+            }
+
+            if ((frame % 10L) == 0L) {
+                spawnRotatedParticle(effectId, position, 0.0D, 1.52D + (flap * 0.2D), -0.30D, yawDegrees, store);
             }
             return;
         }
 
         if ("ember_halo".equals(cosmeticId)) {
-            double phase = frame * 0.14D;
-            double radius = 0.46D;
-            double y = position.y + 1.95D;
+            double phase = frame * 0.058D;
+            double radius = 0.26D;
+            double y = position.y + 1.92D;
             spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
-            spawnParticle(
-                effectId,
-                position.x + Math.cos(phase + Math.PI) * radius,
-                y + 0.02D,
-                position.z + Math.sin(phase + Math.PI) * radius,
-                store
-            );
+            if ((frame % 4L) == 0L) {
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(phase + Math.PI) * radius,
+                    y,
+                    position.z + Math.sin(phase + Math.PI) * radius,
+                    store
+                );
+            }
             return;
         }
 
         if ("void_orbit".equals(cosmeticId)) {
-            double phaseOuter = frame * 0.11D;
-            double phaseInner = -frame * 0.09D;
-            double outerRadius = 0.58D;
-            double innerRadius = 0.34D;
-            double yOuter = position.y + 1.82D;
-            double yInner = position.y + 2.02D;
+            if ((frame % 3L) != 0L) {
+                return;
+            }
 
-            for (int i = 0; i < 3; i++) {
-                double angle = phaseOuter + (Math.PI * 2D * i / 3D);
+            double phaseOuter = frame * 0.035D;
+            double phaseInner = -frame * 0.028D;
+            double outerRadius = 0.36D;
+            double innerRadius = 0.20D;
+            double yOuter = position.y + 1.84D;
+            double yInner = position.y + 1.96D;
+
+            for (int i = 0; i < 2; i++) {
+                double angle = phaseOuter + (Math.PI * i);
                 spawnParticle(
                     effectId,
                     position.x + Math.cos(angle) * outerRadius,
-                    yOuter + Math.sin(phaseOuter + i) * 0.04D,
+                    yOuter + Math.sin(phaseOuter + i) * 0.03D,
                     position.z + Math.sin(angle) * outerRadius,
                     store
                 );
             }
 
-            for (int i = 0; i < 2; i++) {
-                double angle = phaseInner + (Math.PI * 2D * i / 2D);
+            if ((frame % 6L) == 0L) {
+                double angle = phaseInner;
                 spawnParticle(
                     effectId,
                     position.x + Math.cos(angle) * innerRadius,
-                    yInner + Math.sin(phaseInner + i) * 0.03D,
+                    yInner + Math.sin(phaseInner) * 0.02D,
                     position.z + Math.sin(angle) * innerRadius,
                     store
                 );
@@ -919,12 +972,16 @@ public class HyPerksCoreService {
         }
 
         if ("heart_bloom".equals(cosmeticId)) {
-            double bob = Math.sin(frame * 0.12D) * 0.06D;
-            double y = position.y + 2.02D + bob;
-            spawnParticle(effectId, position.x - 0.16D, y, position.z, store);
-            spawnParticle(effectId, position.x + 0.16D, y, position.z, store);
-            if ((frame % 2L) == 0L) {
-                spawnParticle(effectId, position.x, y + 0.11D, position.z, store);
+            if ((frame % 4L) != 0L) {
+                return;
+            }
+
+            double bob = Math.sin(frame * 0.06D) * 0.04D;
+            double y = position.y + 1.92D + bob;
+            spawnParticle(effectId, position.x - 0.18D, y, position.z - 0.07D, store);
+            spawnParticle(effectId, position.x + 0.18D, y, position.z + 0.07D, store);
+            if ((frame % 12L) == 0L) {
+                spawnParticle(effectId, position.x, y + 0.06D, position.z, store);
             }
             return;
         }
@@ -967,40 +1024,42 @@ public class HyPerksCoreService {
     ) {
         String style = cosmetic.getRenderStyle();
         String cosmeticId = cosmetic.getId();
-        double phaseSpeed = 0.17D;
-        double orbitRadius = 0.62D;
-        double orbitWobble = 0.12D;
-        int orbitPoints = 5;
-
-        if ("vip_aura".equals(cosmeticId)) {
-            // VIP aura: calmer and smaller ring.
-            phaseSpeed = 0.10D;
-            orbitRadius = 0.46D;
-            orbitWobble = 0.06D;
-            orbitPoints = 3;
-        }
-
-        double phase = frame * phaseSpeed;
-        double yBase = position.y + 2.05D;
-
-        if ("crown".equals(style)) {
-            int crownPoints = 4;
-            double radius = 0.42D;
-            double wobble = 0.08D;
-            long centerSpawnEvery = 2L;
+        if ("crown".equals(style) || "vip_aura".equals(cosmeticId) || "vip_plus_aura".equals(cosmeticId)
+            || "mvp_aura".equals(cosmeticId) || "mvp_plus_aura".equals(cosmeticId)) {
+            long frameGate = 6L;
+            int crownPoints = 1;
+            double radius = 0.22D;
+            double wobble = 0.012D;
+            long centerSpawnEvery = 18L;
+            double phaseSpeed = 0.035D;
 
             if ("vip_plus_aura".equals(cosmeticId)) {
-                crownPoints = 3;
-                radius = 0.36D;
-                wobble = 0.05D;
-                centerSpawnEvery = 4L;
+                frameGate = 5L;
+                crownPoints = 1;
+                radius = 0.24D;
+                centerSpawnEvery = 16L;
+                phaseSpeed = 0.038D;
+            } else if ("mvp_aura".equals(cosmeticId)) {
+                frameGate = 5L;
+                crownPoints = 1;
+                radius = 0.25D;
+                centerSpawnEvery = 14L;
+                phaseSpeed = 0.04D;
             } else if ("mvp_plus_aura".equals(cosmeticId)) {
-                crownPoints = 3;
-                radius = 0.38D;
-                wobble = 0.05D;
-                centerSpawnEvery = 4L;
+                frameGate = 4L;
+                crownPoints = 1;
+                radius = 0.27D;
+                wobble = 0.014D;
+                centerSpawnEvery = 12L;
+                phaseSpeed = 0.045D;
             }
 
+            if ((frame % frameGate) != 0L) {
+                return;
+            }
+
+            double phase = frame * phaseSpeed;
+            double yBase = position.y + 2.03D;
             for (int i = 0; i < crownPoints; i++) {
                 double angle = phase + (Math.PI * 2D * i / crownPoints);
                 spawnParticle(
@@ -1011,44 +1070,15 @@ public class HyPerksCoreService {
                     store
                 );
             }
+
             if ((frame % centerSpawnEvery) == 0L) {
-                spawnParticle(effectId, position.x, yBase + 0.35D, position.z, store);
+                spawnParticle(effectId, position.x, yBase + 0.16D, position.z, store);
             }
             return;
         }
 
-        if ("pillar".equals(style)) {
-            int points = 3;
-            double verticalStep = 0.65D;
-            double bobAmplitude = 0.06D;
-            double bobSpeed = 0.15D;
-
-            if ("mvp_aura".equals(cosmeticId)) {
-                // MVP aura: fewer particles, slower pulse and tighter height spread.
-                points = 2;
-                verticalStep = 0.58D;
-                bobAmplitude = 0.03D;
-                bobSpeed = 0.08D;
-            }
-
-            for (int i = 0; i < points; i++) {
-                double y = position.y + 0.35D + (i * verticalStep) + Math.sin((frame + i) * bobSpeed) * bobAmplitude;
-                spawnParticle(effectId, position.x, y, position.z, store);
-            }
-            return;
-        }
-
-        for (int i = 0; i < orbitPoints; i++) {
-            double angle = phase + (Math.PI * 2D * i / orbitPoints);
-            double y = yBase + Math.sin(phase + i) * orbitWobble;
-            spawnParticle(
-                effectId,
-                position.x + Math.cos(angle) * orbitRadius,
-                y,
-                position.z + Math.sin(angle) * orbitRadius,
-                store
-            );
-        }
+        double phase = frame * 0.06D;
+        spawnParticle(effectId, position.x + Math.cos(phase) * 0.34D, position.y + 2.0D, position.z + Math.sin(phase) * 0.34D, store);
     }
 
     private void renderTrail(
@@ -1059,39 +1089,103 @@ public class HyPerksCoreService {
         long frame
     ) {
         String style = cosmetic.getRenderStyle();
-        double sway = Math.sin(frame * 0.25D) * 0.18D;
-        double baseY = position.y + 0.08D;
+        double baseY = position.y + 0.1D;
 
-        if ("spiral".equals(style)) {
-            double phase = frame * 0.32D;
-            double radius = 0.22D;
-            spawnParticle(effectId, position.x + Math.cos(phase) * radius, baseY, position.z + Math.sin(phase) * radius, store);
-            spawnParticle(
-                effectId,
-                position.x + Math.cos(phase + Math.PI) * radius,
-                baseY + 0.04D,
-                position.z + Math.sin(phase + Math.PI) * radius,
-                store
-            );
-            return;
-        }
-
-        if ("spark".equals(style)) {
-            spawnParticle(effectId, position.x + sway, baseY, position.z, store);
-            if ((frame % 2L) == 0L) {
-                spawnParticle(effectId, position.x - sway, baseY + 0.05D, position.z, store);
+        if ("comet".equals(style)) {
+            if ((frame % 2L) != 0L) {
+                return;
+            }
+            double phase = frame * 0.10D;
+            spawnParticle(effectId, position.x + Math.cos(phase) * 0.11D, baseY, position.z + Math.sin(phase) * 0.11D, store);
+            if ((frame % 4L) == 0L) {
+                spawnParticle(effectId, position.x - Math.cos(phase) * 0.17D, baseY + 0.02D, position.z - Math.sin(phase) * 0.17D, store);
             }
             return;
         }
 
-        double phase = frame * 0.20D;
-        spawnParticle(effectId, position.x + Math.cos(phase) * 0.12D, baseY, position.z + Math.sin(phase) * 0.12D, store);
-        spawnParticle(effectId, position.x - Math.cos(phase) * 0.12D, baseY + 0.03D, position.z - Math.sin(phase) * 0.12D, store);
+        if ("spark".equals(style)) {
+            if ((frame % 2L) != 0L) {
+                return;
+            }
+            double sway = Math.sin(frame * 0.12D) * 0.1D;
+            spawnParticle(effectId, position.x + sway, baseY, position.z, store);
+            spawnParticle(effectId, position.x - sway, baseY + 0.02D, position.z, store);
+            return;
+        }
+
+        if ("spiral".equals(style)) {
+            if ((frame % 2L) != 0L) {
+                return;
+            }
+            double phase = frame * 0.17D;
+            double radius = 0.18D;
+            spawnParticle(effectId, position.x + Math.cos(phase) * radius, baseY, position.z + Math.sin(phase) * radius, store);
+            spawnParticle(
+                effectId,
+                position.x + Math.cos(phase + Math.PI) * radius,
+                baseY + 0.02D,
+                position.z + Math.sin(phase + Math.PI) * radius,
+                store
+            );
+            if ((frame % 6L) == 0L) {
+                spawnParticle(effectId, position.x, baseY + 0.05D, position.z, store);
+            }
+            return;
+        }
+
+        if ("supreme".equals(style)) {
+            if ((frame % 2L) != 0L) {
+                return;
+            }
+            double phase = frame * 0.2D;
+            double radius = 0.22D;
+            for (int i = 0; i < 3; i++) {
+                double angle = phase + (Math.PI * 2D * i / 3D);
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(angle) * radius,
+                    baseY + (i * 0.02D),
+                    position.z + Math.sin(angle) * radius,
+                    store
+                );
+            }
+            if ((frame % 3L) == 0L) {
+                spawnParticle(effectId, position.x, baseY + 0.04D, position.z, store);
+            }
+            return;
+        }
+
+        if ("laser".equals(style)) {
+            if ((frame % 3L) != 0L) {
+                return;
+            }
+            for (int i = 0; i < 4; i++) {
+                spawnParticle(effectId, position.x, baseY + (i * 0.065D), position.z, store);
+            }
+            return;
+        }
+
+        if ("icon".equals(style)) {
+            if ((frame % 3L) != 0L) {
+                return;
+            }
+            double phase = frame * 0.08D;
+            spawnParticle(effectId, position.x, baseY + 0.02D, position.z, store);
+            spawnParticle(effectId, position.x + Math.cos(phase) * 0.10D, baseY, position.z + Math.sin(phase) * 0.10D, store);
+            if ((frame % 6L) == 0L) {
+                spawnParticle(effectId, position.x - Math.cos(phase) * 0.08D, baseY + 0.03D, position.z - Math.sin(phase) * 0.08D, store);
+            }
+            return;
+        }
+
+        double phase = frame * 0.14D;
+        spawnParticle(effectId, position.x + Math.cos(phase) * 0.1D, baseY, position.z + Math.sin(phase) * 0.1D, store);
     }
 
     private void renderFootprints(
         String effectId,
         Vector3d position,
+        double yawDegrees,
         Store<EntityStore> store,
         RenderTracker tracker,
         long nowMs
@@ -1105,7 +1199,17 @@ public class HyPerksCoreService {
             }
         }
 
-        spawnParticle(effectId, position.x, position.y + 0.05D, position.z, store);
+        double side = tracker.nextFootRight ? 0.14D : -0.14D;
+        tracker.nextFootRight = !tracker.nextFootRight;
+
+        double yawRadians = Math.toRadians(yawDegrees + 90.0D);
+        double offsetX = Math.cos(yawRadians) * side;
+        double offsetZ = Math.sin(yawRadians) * side;
+        double forwardX = Math.cos(Math.toRadians(yawDegrees)) * 0.04D;
+        double forwardZ = Math.sin(Math.toRadians(yawDegrees)) * 0.04D;
+
+        spawnParticle(effectId, position.x + offsetX + forwardX, position.y + 0.06D, position.z + offsetZ + forwardZ, store);
+        spawnParticle(effectId, position.x + offsetX - forwardX, position.y + 0.06D, position.z + offsetZ - forwardZ, store);
         tracker.lastFootstepPosition = new Vector3d(position);
         tracker.lastFootstepAtMs = nowMs;
     }
@@ -1115,32 +1219,22 @@ public class HyPerksCoreService {
         CosmeticDefinition cosmetic,
         Vector3d position,
         Store<EntityStore> store,
-        long frame
+        long frame,
+        int slot,
+        int totalSlots
     ) {
-        if ("rank_stream".equals(cosmetic.getRenderStyle()) && (frame % 3L) != 0L) {
-            return;
-        }
-        if (!"rank_stream".equals(cosmetic.getRenderStyle()) && (frame % 2L) != 0L) {
+        if ((frame % 8L) != 0L) {
             return;
         }
 
-        if ("rank_stream".equals(cosmetic.getRenderStyle())) {
-            double phase = frame * 0.24D;
-            double radius = 0.14D;
-            double x = position.x + Math.cos(phase) * radius;
-            double z = position.z + Math.sin(phase) * radius;
-            spawnParticle(effectId, x, position.y + 0.08D, z, store);
-            return;
-        }
-
-        double side = Math.sin(frame * 0.10D) * 0.14D;
-        double bob = Math.sin(frame * 0.05D) * 0.07D;
-        double y = position.y + 2.35D + bob;
-        spawnParticle(effectId, position.x + side, y, position.z, store);
-
-        if (!"badge".equals(cosmetic.getRenderStyle())) {
-            spawnParticle(effectId, position.x - side, y, position.z, store);
-        }
+        double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
+        double phase = (frame * 0.025D) + baseAngle;
+        double bob = Math.sin(frame * 0.02D + slot) * 0.015D;
+        double radius = "rank_stream".equals(cosmetic.getRenderStyle()) ? 0.30D : 0.27D;
+        double y = position.y + 2.12D + bob;
+        double x = position.x + Math.cos(phase) * radius;
+        double z = position.z + Math.sin(phase) * radius;
+        spawnParticle(effectId, x, y, z, store);
     }
 
     private void renderTrophyBadge(
@@ -1148,33 +1242,37 @@ public class HyPerksCoreService {
         CosmeticDefinition cosmetic,
         Vector3d position,
         Store<EntityStore> store,
-        long frame
+        long frame,
+        int slot,
+        int totalSlots
     ) {
-        if ((frame % 4L) != 0L) {
+        if ((frame % 9L) != 0L) {
             return;
         }
 
-        if (!"crown".equals(cosmetic.getRenderStyle())) {
-            renderFloatingBadge(effectId, cosmetic, position, store, frame);
-            return;
-        }
-
-        double phase = frame * 0.12D;
-        double radius = 0.24D;
-        double y = position.y + 2.65D;
-
+        double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
+        double phase = (frame * 0.025D) + baseAngle;
+        double bob = Math.sin(frame * 0.02D + slot) * 0.015D;
+        double radius = "crown".equals(cosmetic.getRenderStyle()) ? 0.33D : 0.30D;
+        double y = position.y + 2.28D + bob;
         spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
-        spawnParticle(
-            effectId,
-            position.x + Math.cos(phase + Math.PI) * radius,
-            y,
-            position.z + Math.sin(phase + Math.PI) * radius,
-            store
-        );
+    }
 
-        if ((frame % 8L) == 0L) {
-            spawnParticle(effectId, position.x, y + 0.22D, position.z, store);
-        }
+    private void spawnRotatedParticle(
+        String effectId,
+        Vector3d origin,
+        double localX,
+        double localY,
+        double localZ,
+        double yawDegrees,
+        Store<EntityStore> store
+    ) {
+        double yawRadians = Math.toRadians(-yawDegrees);
+        double cos = Math.cos(yawRadians);
+        double sin = Math.sin(yawRadians);
+        double rotatedX = (localX * cos) - (localZ * sin);
+        double rotatedZ = (localX * sin) + (localZ * cos);
+        spawnParticle(effectId, origin.x + rotatedX, origin.y + localY, origin.z + rotatedZ, store);
     }
 
     private void spawnParticle(String effectId, double x, double y, double z, Store<EntityStore> store) {
@@ -1199,6 +1297,32 @@ public class HyPerksCoreService {
         return this.byCategory
             .getOrDefault(category, Map.of())
             .get(normalizeId(selectedId));
+    }
+
+    private List<CosmeticDefinition> resolveActiveCosmetics(PlayerState state, CosmeticCategory category) {
+        Map<String, CosmeticDefinition> categoryMap = this.byCategory.getOrDefault(category, Map.of());
+        if (categoryMap.isEmpty()) {
+            return List.of();
+        }
+
+        if (!supportsMultiActive(category)) {
+            CosmeticDefinition active = resolveActiveCosmetic(state, category);
+            return active == null ? List.of() : List.of(active);
+        }
+
+        List<String> selectedIds = state.getActiveList(category.getId());
+        if (selectedIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<CosmeticDefinition> result = new ArrayList<>();
+        for (String selectedId : selectedIds) {
+            CosmeticDefinition cosmetic = categoryMap.get(normalizeId(selectedId));
+            if (cosmetic != null) {
+                result.add(cosmetic);
+            }
+        }
+        return result;
     }
 
     private String resolveEffectId(String configuredEffectId) {
@@ -1390,6 +1514,78 @@ public class HyPerksCoreService {
             summary.append(category.getId()).append(": ").append(size);
         }
         return summary.toString();
+    }
+
+    private boolean supportsMultiActive(CosmeticCategory category) {
+        return MULTI_ACTIVE_CATEGORIES.contains(category);
+    }
+
+    private void sortCosmeticsForCategory(CosmeticCategory category, List<CosmeticDefinition> cosmetics) {
+        Map<String, Integer> order = COSMETIC_ORDER.getOrDefault(category, Map.of());
+        cosmetics.sort(
+            Comparator
+                .comparingInt((CosmeticDefinition cosmetic) -> order.getOrDefault(cosmetic.getId(), Integer.MAX_VALUE))
+                .thenComparing(CosmeticDefinition::getId)
+        );
+    }
+
+    private static Map<CosmeticCategory, Map<String, Integer>> createCosmeticOrder() {
+        EnumMap<CosmeticCategory, Map<String, Integer>> order = new EnumMap<>(CosmeticCategory.class);
+        order.put(
+            CosmeticCategory.AURAS_PREMIUM,
+            createIdOrder("vip_aura", "vip_plus_aura", "mvp_aura", "mvp_plus_aura")
+        );
+        order.put(
+            CosmeticCategory.TRAILS,
+            createIdOrder(
+                "vip_trail",
+                "vip_plus_trail",
+                "mvp_trail",
+                "mvp_plus_trail",
+                "laser_trail",
+                "star_trail",
+                "money_trail",
+                "death_trail",
+                "music_trail",
+                "flame_trail",
+                "lightning_trail",
+                "clover_trail",
+                "sword_trail",
+                "crown_trail",
+                "dynamite_trail",
+                "bomb_trail",
+                "c4_trail",
+                "radioactive_trail",
+                "heart_fire_trail",
+                "heart_broken_trail",
+                "exclamation_trail",
+                "question_trail",
+                "spade_trail",
+                "club_trail",
+                "diamond_trail"
+            )
+        );
+        order.put(
+            CosmeticCategory.FLOATING_BADGES,
+            createIdOrder(
+                "vip",
+                "vip_plus",
+                "mvp",
+                "mvp_plus",
+                "mcqc_legacy_fleur",
+                "mcqc_legacy_fleur_b",
+                "mcqc_legacy_fleur_c"
+            )
+        );
+        return Collections.unmodifiableMap(order);
+    }
+
+    private static Map<String, Integer> createIdOrder(String... ids) {
+        Map<String, Integer> order = new HashMap<>();
+        for (int i = 0; i < ids.length; i++) {
+            order.put(ids[i], i);
+        }
+        return Collections.unmodifiableMap(order);
     }
 
     private String tr(CommandSender sender, String key, Object... args) {
@@ -1625,5 +1821,6 @@ public class HyPerksCoreService {
         private Vector3d lastFootstepPosition;
         private long lastFootstepAtMs;
         private long lastSeenMs;
+        private boolean nextFootRight = true;
     }
 }

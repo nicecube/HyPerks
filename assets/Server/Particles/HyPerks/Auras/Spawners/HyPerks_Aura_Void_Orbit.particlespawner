@@ -1,55 +1,114 @@
 {
-  "EmitOffset": {
-    "X": { "Min": -0.1, "Max": 0.1 },
-    "Y": { "Min": -0.04, "Max": 0.1 },
-    "Z": { "Min": -0.1, "Max": 0.1 }
-  },
-  "ParticleRotationInfluence": "Billboard",
-  "LinearFiltering": true,
-  "LightInfluence": 0.95,
-  "ParticleRotateWithSpawner": false,
-  "TrailSpawnerPositionMultiplier": 0,
-  "TrailSpawnerRotationMultiplier": 1,
-  "MaxConcurrentParticles": 9,
-  "ParticleLifeSpan": { "Min": 0.75, "Max": 1.2 },
-  "SpawnRate": { "Min": 2, "Max": 4 },
-  "Particle": {
-    "Texture": "Particles/Textures/HyPerks/Aura_Void_Orb.png",
-    "FrameSize": { "Width": 64, "Height": 64 },
-    "ScaleRatioConstraint": "OneToOne",
-    "UVOption": "RandomFlipU",
-    "Animation": {
-      "0": {
-        "Opacity": 1.0,
-        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
-        "Color": "#b78fff"
-      },
-      "55": {
-        "Opacity": 0.72
-      },
-      "100": {
-        "Opacity": 0.0,
-        "Scale": { "X": { "Min": 0.2, "Max": 0.2 } },
-        "Color": "#89edff"
-      }
-    },
-    "InitialAnimationFrame": {
-      "Scale": { "X": { "Min": 0.12, "Max": 0.18 } },
-      "Opacity": 0.95,
-      "Rotation": { "Z": { "Min": -180, "Max": 180 } }
-    }
-  },
-  "SpawnBurst": false,
-  "Attractors": [
-    {
-      "Position": { "X": 0, "Y": 0, "Z": 0 },
-      "LinearAcceleration": { "X": 0, "Y": 0.06, "Z": 0 },
-      "DampingMultiplier": { "X": 0.9, "Y": 0.92, "Z": 0.9 }
-    }
-  ],
-  "InitialVelocity": {
-    "Yaw": { "Min": -180, "Max": 180 },
-    "Pitch": { "Min": 74, "Max": 90 },
-    "Speed": { "Min": 0.01, "Max": 0.05 }
-  }
+    "EmitOffset":  {
+                       "X":  {
+                                 "Min":  -0.1,
+                                 "Max":  0.1
+                             },
+                       "Y":  {
+                                 "Min":  -0.04,
+                                 "Max":  0.1
+                             },
+                       "Z":  {
+                                 "Min":  -0.1,
+                                 "Max":  0.1
+                             }
+                   },
+    "ParticleRotationInfluence":  "Billboard",
+    "LinearFiltering":  true,
+    "LightInfluence":  0.95,
+    "ParticleRotateWithSpawner":  false,
+    "TrailSpawnerPositionMultiplier":  0,
+    "TrailSpawnerRotationMultiplier":  1,
+    "MaxConcurrentParticles":  6,
+    "ParticleLifeSpan":  {
+                             "Min":  0.7,
+                             "Max":  1
+                         },
+    "SpawnRate":  {
+                      "Min":  1,
+                      "Max":  2
+                  },
+    "Particle":  {
+                     "Texture":  "Particles/Textures/HyPerks/Aura_Void_Orb.png",
+                     "FrameSize":  {
+                                       "Width":  64,
+                                       "Height":  64
+                                   },
+                     "ScaleRatioConstraint":  "OneToOne",
+                     "UVOption":  "RandomFlipU",
+                     "Animation":  {
+                                       "0":  {
+                                                 "Opacity":  1.0,
+                                                 "Scale":  {
+                                                               "X":  {
+                                                                         "Min":  1.0,
+                                                                         "Max":  1.0
+                                                                     }
+                                                           },
+                                                 "Color":  "#b78fff"
+                                             },
+                                       "55":  {
+                                                  "Opacity":  0.72
+                                              },
+                                       "100":  {
+                                                   "Opacity":  0.0,
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  0.2,
+                                                                           "Max":  0.2
+                                                                       }
+                                                             },
+                                                   "Color":  "#89edff"
+                                               }
+                                   },
+                     "InitialAnimationFrame":  {
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  0.1,
+                                                                           "Max":  0.15
+                                                                       }
+                                                             },
+                                                   "Opacity":  0.95,
+                                                   "Rotation":  {
+                                                                    "Z":  {
+                                                                              "Min":  -180,
+                                                                              "Max":  180
+                                                                          }
+                                                                }
+                                               }
+                 },
+    "SpawnBurst":  false,
+    "Attractors":  [
+                       {
+                           "Position":  {
+                                            "X":  0,
+                                            "Y":  0,
+                                            "Z":  0
+                                        },
+                           "LinearAcceleration":  {
+                                                      "X":  0,
+                                                      "Y":  0.04,
+                                                      "Z":  0
+                                                  },
+                           "DampingMultiplier":  {
+                                                     "X":  0.9,
+                                                     "Y":  0.92,
+                                                     "Z":  0.9
+                                                 }
+                       }
+                   ],
+    "InitialVelocity":  {
+                            "Yaw":  {
+                                        "Min":  -180,
+                                        "Max":  180
+                                    },
+                            "Pitch":  {
+                                          "Min":  74,
+                                          "Max":  90
+                                      },
+                            "Speed":  {
+                                          "Min":  0.01,
+                                          "Max":  0.05
+                                      }
+                        }
 }

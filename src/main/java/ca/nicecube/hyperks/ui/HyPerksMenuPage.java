@@ -182,7 +182,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             EventData eventData = EventData
                 .of(MenuEventData.KEY_ACTION, "tab")
                 .append(MenuEventData.KEY_TAB_CATEGORY, category.getId());
-            events.addEventBinding(CustomUIEventBindingType.Activating, itemPath, eventData, false);
+            events.addEventBinding(CustomUIEventBindingType.Activating, itemPath + " #Button", eventData, false);
             index++;
         }
     }
@@ -220,7 +220,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
                 .of(MenuEventData.KEY_ACTION, "toggle")
                 .append(MenuEventData.KEY_CATEGORY, entry.getCategoryId())
                 .append(MenuEventData.KEY_COSMETIC, entry.getCosmeticId());
-            events.addEventBinding(CustomUIEventBindingType.Activating, itemPath, eventData, false);
+            events.addEventBinding(CustomUIEventBindingType.Activating, itemPath + " #Button", eventData, false);
         }
     }
 

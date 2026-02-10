@@ -1,16 +1,10 @@
 {
-  "Spawners": [
-    {
-      "SpawnerId": "HyPerks_Trophy_Rune_Main",
-      "FixedRotation": false
-    },
-    {
-      "SpawnerId": "HyPerks_Trophy_Sparkle",
-      "StartDelay": 0.03
-    }
-  ],
-  "LifeSpan": 2.2,
-  "IsImportant": true
+    "Spawners":  [
+                     {
+                         "SpawnerId":  "HyPerks_Trophy_Rune_Main",
+                         "FixedRotation":  false
+                     }
+                 ],
+    "LifeSpan":  1.6,
+    "IsImportant":  false
 }
-
-

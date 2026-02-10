@@ -1,52 +1,102 @@
 {
-  "EmitOffset": {
-    "X": { "Min": -0.2, "Max": 0.2 },
-    "Y": { "Min": -0.06, "Max": 0.18 },
-    "Z": { "Min": -0.2, "Max": 0.2 }
-  },
-  "ParticleRotationInfluence": "Billboard",
-  "LightInfluence": 0.96,
-  "MaxConcurrentParticles": 10,
-  "ParticleLifeSpan": { "Min": 0.6, "Max": 0.95 },
-  "SpawnRate": { "Min": 2, "Max": 4 },
-  "ParticleRotateWithSpawner": false,
-  "Attractors": [
-    {
-      "Position": { "X": 0, "Y": 0, "Z": 0 },
-      "LinearAcceleration": { "X": 0, "Y": 0.82, "Z": 0 },
-      "Radius": 1,
-      "DampingMultiplier": { "X": 0.86, "Y": 0.9, "Z": 0.86 }
-    }
-  ],
-  "Particle": {
-    "Texture": "Particles/Textures/HyPerks/Aura_VIP_PLUS.png",
-    "FrameSize": { "Width": 64, "Height": 64 },
-    "ScaleRatioConstraint": "OneToOne",
-    "UVOption": "RandomFlipU",
-    "Animation": {
-      "0": {
-        "Opacity": 1.0,
-        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
-        "Color": "#a3f3ff"
-      },
-      "60": {
-        "Opacity": 0.72
-      },
-      "100": {
-        "Opacity": 0.0,
-        "Scale": { "X": { "Min": 0.14, "Max": 0.14 } },
-        "Color": "#dffbff"
-      }
-    },
-    "InitialAnimationFrame": {
-      "Rotation": { "Z": { "Min": -180, "Max": 180 } },
-      "Scale": { "X": { "Min": 0.17, "Max": 0.17 } },
-      "Opacity": 0.96
-    }
-  },
-  "RenderMode": "Erosion",
-  "SpawnBurst": false,
-  "TrailSpawnerPositionMultiplier": 0,
-  "TrailSpawnerRotationMultiplier": 1,
-  "LinearFiltering": true
+    "EmitOffset":  {
+                       "X":  {
+                                 "Min":  -0.2,
+                                 "Max":  0.2
+                             },
+                       "Y":  {
+                                 "Min":  -0.06,
+                                 "Max":  0.18
+                             },
+                       "Z":  {
+                                 "Min":  -0.2,
+                                 "Max":  0.2
+                             }
+                   },
+    "ParticleRotationInfluence":  "Billboard",
+    "LightInfluence":  0.96,
+    "MaxConcurrentParticles":  6,
+    "ParticleLifeSpan":  {
+                             "Min":  0.7,
+                             "Max":  1.05
+                         },
+    "SpawnRate":  {
+                      "Min":  1,
+                      "Max":  2
+                  },
+    "ParticleRotateWithSpawner":  false,
+    "Attractors":  [
+                       {
+                           "Position":  {
+                                            "X":  0,
+                                            "Y":  0,
+                                            "Z":  0
+                                        },
+                           "LinearAcceleration":  {
+                                                      "X":  0,
+                                                      "Y":  0.08,
+                                                      "Z":  0
+                                                  },
+                           "Radius":  1,
+                           "DampingMultiplier":  {
+                                                     "X":  0.86,
+                                                     "Y":  0.9,
+                                                     "Z":  0.86
+                                                 }
+                       }
+                   ],
+    "Particle":  {
+                     "Texture":  "Particles/Textures/HyPerks/Aura_MVP.png",
+                     "FrameSize":  {
+                                       "Width":  64,
+                                       "Height":  64
+                                   },
+                     "ScaleRatioConstraint":  "OneToOne",
+                     "UVOption":  "RandomFlipU",
+                     "Animation":  {
+                                       "0":  {
+                                                 "Opacity":  1.0,
+                                                 "Scale":  {
+                                                               "X":  {
+                                                                         "Min":  1.0,
+                                                                         "Max":  1.0
+                                                                     }
+                                                           },
+                                                 "Color":  "#a3f3ff"
+                                             },
+                                       "60":  {
+                                                  "Opacity":  0.72
+                                              },
+                                       "100":  {
+                                                   "Opacity":  0.0,
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  0.14,
+                                                                           "Max":  0.14
+                                                                       }
+                                                             },
+                                                   "Color":  "#dffbff"
+                                               }
+                                   },
+                     "InitialAnimationFrame":  {
+                                                   "Rotation":  {
+                                                                    "Z":  {
+                                                                              "Min":  -180,
+                                                                              "Max":  180
+                                                                          }
+                                                                },
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  0.1,
+                                                                           "Max":  0.15
+                                                                       }
+                                                             },
+                                                   "Opacity":  0.96
+                                               }
+                 },
+    "RenderMode":  "Erosion",
+    "SpawnBurst":  false,
+    "TrailSpawnerPositionMultiplier":  0,
+    "TrailSpawnerRotationMultiplier":  1,
+    "LinearFiltering":  true
 }

@@ -4,10 +4,11 @@ import ca.nicecube.hyperks.config.HyPerksConfig;
 import ca.nicecube.hyperks.model.PlayerState;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.hypixel.hytale.logger.HytaleLogger;
 
-import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,13 +17,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.UUID;
 
 public class SqlPlayerStateStore implements PlayerStateStore {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
-    private static final Type COSMETIC_MAP_TYPE = new TypeToken<Map<String, String>>() {}.getType();
 
     private final HytaleLogger logger;
     private final String mode;
@@ -93,10 +94,7 @@ public class SqlPlayerStateStore implements PlayerStateStore {
                 }
 
                 state.setLocale(resultSet.getString("locale"));
-                Map<String, String> activeCosmetics = parseActiveCosmetics(resultSet.getString("active_cosmetics"));
-                for (Map.Entry<String, String> entry : activeCosmetics.entrySet()) {
-                    state.setActive(entry.getKey(), entry.getValue());
-                }
+                applyActiveCosmetics(resultSet.getString("active_cosmetics"), state);
                 state.normalize();
                 return state;
             }
@@ -108,7 +106,7 @@ public class SqlPlayerStateStore implements PlayerStateStore {
     @Override
     public void save(UUID playerUuid, PlayerState state) {
         state.normalize();
-        String activeJson = GSON.toJson(state.getAllActive());
+        String activeJson = GSON.toJson(state.getStorageActiveCosmetics());
         long updatedAt = Instant.now().toEpochMilli();
 
         String sql = upsertStatement();
@@ -239,16 +237,41 @@ public class SqlPlayerStateStore implements PlayerStateStore {
         return normalized;
     }
 
-    private Map<String, String> parseActiveCosmetics(String rawJson) {
+    private void applyActiveCosmetics(String rawJson, PlayerState state) {
         if (rawJson == null || rawJson.isBlank()) {
-            return Map.of();
+            return;
         }
         try {
-            Map<String, String> values = GSON.fromJson(rawJson, COSMETIC_MAP_TYPE);
-            return values == null ? Map.of() : values;
+            JsonElement root = JsonParser.parseString(rawJson);
+            if (!root.isJsonObject()) {
+                return;
+            }
+
+            JsonObject object = root.getAsJsonObject();
+            for (String categoryId : object.keySet()) {
+                JsonElement value = object.get(categoryId);
+                if (value == null || value.isJsonNull()) {
+                    continue;
+                }
+
+                if (value.isJsonArray()) {
+                    List<String> cosmetics = new ArrayList<>();
+                    for (JsonElement arrayEntry : value.getAsJsonArray()) {
+                        if (arrayEntry == null || arrayEntry.isJsonNull() || !arrayEntry.isJsonPrimitive()) {
+                            continue;
+                        }
+                        cosmetics.add(arrayEntry.getAsString());
+                    }
+                    state.setActiveList(categoryId, cosmetics);
+                    continue;
+                }
+
+                if (value.isJsonPrimitive()) {
+                    state.setActive(categoryId, value.getAsString());
+                }
+            }
         } catch (Exception ex) {
             this.logger.atWarning().withCause(ex).log("[HyPerks] Invalid active_cosmetics JSON in SQL row.");
-            return Map.of();
         }
     }
 }

@@ -51,7 +51,7 @@ public class CosmeticCatalog {
             "mvp_aura",
             "auras_premium",
             "Server/Particles/HyPerks/PremiumAuras/MVP_Aura.particlesystem",
-            "pillar"
+            "crown"
         ));
         catalog.cosmetics.add(c(
             "mvp_plus_aura",
@@ -64,7 +64,7 @@ public class CosmeticCatalog {
             "vip_trail",
             "trails",
             "Server/Particles/HyPerks/Trails/VIP_Trail.particlesystem",
-            "stream"
+            "comet"
         ));
         catalog.cosmetics.add(c(
             "vip_plus_trail",
@@ -82,7 +82,133 @@ public class CosmeticCatalog {
             "mvp_plus_trail",
             "trails",
             "Server/Particles/HyPerks/Trails/MVPPlus_Trail.particlesystem",
-            "spiral"
+            "supreme"
+        ));
+        catalog.cosmetics.add(c(
+            "laser_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Laser_Trail.particlesystem",
+            "laser"
+        ));
+        catalog.cosmetics.add(c(
+            "star_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Star_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "money_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Money_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "death_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Death_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "music_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Music_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "flame_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Flame_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "lightning_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Lightning_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "clover_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Clover_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "sword_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Sword_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "crown_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Crown_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "dynamite_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Dynamite_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "bomb_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Bomb_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "c4_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/C4_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "radioactive_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Radioactive_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "heart_fire_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Heart_Fire_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "heart_broken_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Heart_Broken_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "exclamation_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Exclamation_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "question_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Question_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "spade_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Spade_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "club_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Club_Trail.particlesystem",
+            "icon"
+        ));
+        catalog.cosmetics.add(c(
+            "diamond_trail",
+            "trails",
+            "Server/Particles/HyPerks/Trails/Diamond_Trail.particlesystem",
+            "icon"
         ));
 
         catalog.cosmetics.add(c(

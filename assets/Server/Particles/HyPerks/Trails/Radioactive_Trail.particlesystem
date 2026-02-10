@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Trail_Radioactive",
+      "FixedRotation": false
+    }
+  ],
+  "LifeSpan": 1.2,
+  "IsImportant": false
+}

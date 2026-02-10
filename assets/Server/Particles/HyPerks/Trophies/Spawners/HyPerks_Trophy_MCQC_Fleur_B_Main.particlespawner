@@ -1,106 +1,108 @@
 {
-  "EmitOffset": {
-    "X": {
-      "Min": 0.0,
-      "Max": 0.16
-    },
-    "Y": {
-      "Min": 0.0,
-      "Max": 0.08
-    },
-    "Z": {
-      "Min": 0.0,
-      "Max": 0.16
-    }
-  },
-  "ParticleRotationInfluence": "Billboard",
-  "LightInfluence": 0.96,
-  "MaxConcurrentParticles": 3,
-  "ParticleLifeSpan": {
-    "Min": 0.68,
-    "Max": 0.95
-  },
-  "SpawnRate": { "Min": 1, "Max": 2 },
-  "ParticleRotateWithSpawner": false,
-  "Attractors": [
-    {
-      "Position": {
-        "X": 0,
-        "Y": 0,
-        "Z": 0
-      },
-      "LinearAcceleration": {
-        "X": 0,
-        "Y": 0.452,
-        "Z": 0
-      },
-      "Radius": 1,
-      "DampingMultiplier": {
-        "X": 0.8,
-        "Y": 0.88,
-        "Z": 0.8
-      }
-    }
-  ],
-  "Particle": {
-    "Texture": "Particles/Textures/HyPerks/MCQC_Fleur_B.png",
-    "FrameSize": {
-      "Width": 64,
-      "Height": 64
-    },
-    "ScaleRatioConstraint": "OneToOne",
-    "UVOption": "None",
-    "Animation": {
-      "0": {
-        "FrameIndex": {
-          "Min": 0,
-          "Max": 0
-        },
-        "Opacity": 1.0,
-        "Scale": {
-          "X": {
-            "Min": 1.0,
-            "Max": 1.0
-          }
-        },
-        "Color": "#ffeab8"
-      },
-      "100": {
-        "Opacity": 0.0,
-        "Scale": {
-          "X": {
-            "Min": 0.28,
-            "Max": 0.28
-          }
-        },
-        "Color": "#fff7df"
-      }
-    },
-    "InitialAnimationFrame": {
-      "Rotation": {
-        "Z": {
-          "Min": -18,
-          "Max": 18
-        }
-      },
-      "Scale": {
-        "X": {
-          "Min": 0.27,
-          "Max": 0.35
-        }
-      },
-      "Opacity": 0.96,
-      "Color": "#ffeab8",
-      "FrameIndex": {
-        "Min": 0,
-        "Max": 0
-      }
-    }
-  },
-  "RenderMode": "Erosion",
-  "SpawnBurst": false,
-  "TrailSpawnerPositionMultiplier": 0,
-  "TrailSpawnerRotationMultiplier": 1,
-  "LinearFiltering": true
+    "EmitOffset":  {
+                       "X":  {
+                                 "Min":  0.0,
+                                 "Max":  0.16
+                             },
+                       "Y":  {
+                                 "Min":  0.0,
+                                 "Max":  0.08
+                             },
+                       "Z":  {
+                                 "Min":  0.0,
+                                 "Max":  0.16
+                             }
+                   },
+    "ParticleRotationInfluence":  "Billboard",
+    "LightInfluence":  0.96,
+    "MaxConcurrentParticles":  1,
+    "ParticleLifeSpan":  {
+                             "Min":  1.1,
+                             "Max":  1.6
+                         },
+    "SpawnRate":  {
+                      "Min":  1,
+                      "Max":  1
+                  },
+    "ParticleRotateWithSpawner":  false,
+    "Attractors":  [
+                       {
+                           "Position":  {
+                                            "X":  0,
+                                            "Y":  0,
+                                            "Z":  0
+                                        },
+                           "LinearAcceleration":  {
+                                                      "X":  0,
+                                                      "Y":  0.452,
+                                                      "Z":  0
+                                                  },
+                           "Radius":  1,
+                           "DampingMultiplier":  {
+                                                     "X":  0.8,
+                                                     "Y":  0.88,
+                                                     "Z":  0.8
+                                                 }
+                       }
+                   ],
+    "Particle":  {
+                     "Texture":  "Particles/Textures/HyPerks/MCQC_Fleur_B.png",
+                     "FrameSize":  {
+                                       "Width":  64,
+                                       "Height":  64
+                                   },
+                     "ScaleRatioConstraint":  "OneToOne",
+                     "UVOption":  "None",
+                     "Animation":  {
+                                       "0":  {
+                                                 "FrameIndex":  {
+                                                                    "Min":  0,
+                                                                    "Max":  0
+                                                                },
+                                                 "Opacity":  1.0,
+                                                 "Scale":  {
+                                                               "X":  {
+                                                                         "Min":  1.0,
+                                                                         "Max":  1.0
+                                                                     }
+                                                           },
+                                                 "Color":  "#ffeab8"
+                                             },
+                                       "100":  {
+                                                   "Opacity":  0.0,
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  0.28,
+                                                                           "Max":  0.28
+                                                                       }
+                                                             },
+                                                   "Color":  "#fff7df"
+                                               }
+                                   },
+                     "InitialAnimationFrame":  {
+                                                   "Rotation":  {
+                                                                    "Z":  {
+                                                                              "Min":  -18,
+                                                                              "Max":  18
+                                                                          }
+                                                                },
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  0.2,
+                                                                           "Max":  0.26
+                                                                       }
+                                                             },
+                                                   "Opacity":  0.96,
+                                                   "Color":  "#ffeab8",
+                                                   "FrameIndex":  {
+                                                                      "Min":  0,
+                                                                      "Max":  0
+                                                                  }
+                                               }
+                 },
+    "RenderMode":  "Erosion",
+    "SpawnBurst":  false,
+    "TrailSpawnerPositionMultiplier":  0,
+    "TrailSpawnerRotationMultiplier":  1,
+    "LinearFiltering":  true
 }
-
