@@ -15,15 +15,12 @@
   },
   "ParticleRotationInfluence": "Billboard",
   "LightInfluence": 0.8,
-  "MaxConcurrentParticles": 6,
+  "MaxConcurrentParticles": 4,
   "ParticleLifeSpan": {
     "Min": 0.45,
     "Max": 0.65
   },
-  "SpawnRate": {
-    "Min": 5,
-    "Max": 8
-  },
+  "SpawnRate": { "Min": 2, "Max": 4 },
   "ParticleRotateWithSpawner": false,
   "Attractors": [
     {
@@ -34,7 +31,7 @@
       },
       "LinearAcceleration": {
         "X": 0,
-        "Y": 0.7,
+        "Y": 0.42,
         "Z": 0
       },
       "Radius": 1,
@@ -110,4 +107,5 @@
   "TrailSpawnerRotationMultiplier": 1,
   "LinearFiltering": true
 }
+
 

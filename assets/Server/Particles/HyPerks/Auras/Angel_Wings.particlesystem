@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Aura_Angel_Wings",
+      "FixedRotation": false
+    }
+  ],
+  "LifeSpan": 1.6,
+  "IsImportant": false
+}

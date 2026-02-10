@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Aura_Void_Orbit",
+      "FixedRotation": false
+    }
+  ],
+  "LifeSpan": 1.6,
+  "IsImportant": false
+}

@@ -53,6 +53,7 @@ public class CosmeticDefinition {
         }
 
         this.effectId = normalizeAssetPath(this.effectId);
+        this.effectId = migrateLegacyAuraEffectId(this.effectId);
         this.effectId = migrateLegacyFootprintEffectId(this.effectId);
         if (this.effectId.isBlank()) {
             this.effectId = defaultEffectId(this.category);
@@ -137,13 +138,45 @@ public class CosmeticDefinition {
 
     private String defaultEffectId(String category) {
         return switch (category) {
-            case "auras" -> "Server/Particles/Combat/Impact/Misc/Fire/Impact_Fire.particlesystem";
+            case "auras" -> "Server/Particles/HyPerks/Auras/Ember_Halo.particlesystem";
             case "auras_premium" -> "Server/Particles/HyPerks/PremiumAuras/VIP_Aura.particlesystem";
             case "trails" -> "Server/Particles/HyPerks/Trails/VIP_Trail.particlesystem";
             case "footprints" -> "Server/Particles/HyPerks/Footprints/Flame_Steps.particlesystem";
             case "floating_badges" -> "Server/Particles/HyPerks/RankTags/VIP_Stream.particlesystem";
             case "trophy_badges" -> "Server/Particles/HyPerks/Trophies/Season_Champion_Crown.particlesystem";
             default -> "Server/Particles/Combat/Impact/Critical/Impact_Critical.particlesystem";
+        };
+    }
+
+    private String migrateLegacyAuraEffectId(String currentEffectId) {
+        if (!"auras".equals(this.category)) {
+            return currentEffectId;
+        }
+
+        String current = currentEffectId == null ? "" : currentEffectId;
+        String recommended = auraEffectForId(this.id);
+        if (recommended.isBlank()) {
+            return current;
+        }
+
+        if (current.isBlank()) {
+            return recommended;
+        }
+
+        return switch (this.id) {
+            case "ember_halo" -> current.equals("Server/Particles/Combat/Impact/Misc/Fire/Impact_Fire.particlesystem")
+                ? recommended
+                : current;
+            case "void_orbit" -> current.equals("Server/Particles/Combat/Impact/Misc/Void/VoidImpact.particlesystem")
+                ? recommended
+                : current;
+            case "angel_wings" -> current.equals("Server/Particles/Combat/Impact/Critical/Impact_Critical.particlesystem")
+                ? recommended
+                : current;
+            case "heart_bloom" -> current.equals("Server/Particles/Combat/Mace/Signature/Mace_Signature_Cast_End.particlesystem")
+                ? recommended
+                : current;
+            default -> current;
         };
     }
 
@@ -189,6 +222,20 @@ public class CosmeticDefinition {
             case "frost_steps" -> "Server/Particles/HyPerks/Footprints/Frost_Steps.particlesystem";
             case "heart_steps" -> "Server/Particles/HyPerks/Footprints/Heart_Steps.particlesystem";
             case "rune_steps" -> "Server/Particles/HyPerks/Footprints/Rune_Steps.particlesystem";
+            default -> "";
+        };
+    }
+
+    private String auraEffectForId(String cosmeticId) {
+        if (cosmeticId == null) {
+            return "";
+        }
+
+        return switch (cosmeticId) {
+            case "ember_halo" -> "Server/Particles/HyPerks/Auras/Ember_Halo.particlesystem";
+            case "void_orbit" -> "Server/Particles/HyPerks/Auras/Void_Orbit.particlesystem";
+            case "angel_wings" -> "Server/Particles/HyPerks/Auras/Angel_Wings.particlesystem";
+            case "heart_bloom" -> "Server/Particles/HyPerks/Auras/Heart_Bloom.particlesystem";
             default -> "";
         };
     }

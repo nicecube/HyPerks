@@ -1,0 +1,45 @@
+Button #Button {
+  Padding: (Full: 8);
+  Anchor: (Bottom: 5);
+  LayoutMode: Top;
+  Style: (
+    Background: #091323(0.55),
+    Hovered: (
+      Background: #143252(0.76)
+    ),
+    Pressed: (
+      Background: #1c436c(0.86)
+    )
+  );
+
+  Group {
+    LayoutMode: Left;
+
+    Label #Name {
+      FlexWeight: 1;
+      Style: (
+        RenderUppercase: true,
+        RenderBold: true,
+        FontSize: 12,
+        TextColor: #d6e8ff
+      );
+    }
+
+    Label #Status {
+      Style: (
+        RenderUppercase: true,
+        FontSize: 9,
+        RenderBold: true,
+        TextColor: #8db2dd
+      );
+    }
+  }
+
+  Label #Meta {
+    Anchor: (Top: 2);
+    Style: (
+      FontSize: 10,
+      TextColor: #ffffff(0.62)
+    );
+  }
+}

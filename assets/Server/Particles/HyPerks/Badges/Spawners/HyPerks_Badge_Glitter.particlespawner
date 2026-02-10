@@ -5,7 +5,7 @@
   "ParticleRotateWithSpawner": false,
   "TrailSpawnerPositionMultiplier": 1,
   "TrailSpawnerRotationMultiplier": 1,
-  "MaxConcurrentParticles": 6,
+  "MaxConcurrentParticles": 3,
   "ParticleLifeSpan": {
     "Min": 0.25,
     "Max": 0.35
@@ -82,4 +82,5 @@
     }
   }
 }
+
 

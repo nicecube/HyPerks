@@ -1,5 +1,6 @@
 package ca.nicecube.hyperks.ui;
 
+import ca.nicecube.hyperks.model.CosmeticCategory;
 import ca.nicecube.hyperks.service.HyPerksCoreService;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -21,12 +22,18 @@ import java.util.Locale;
 
 public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPage.MenuEventData> {
     private static final String PAGE_UI_FILE = "Pages/HyPerksMenuPage.ui";
+    private static final String TAB_UI_FILE = "Pages/HyPerksMenuTabButton.ui";
     private static final String ENTRY_UI_FILE = "Pages/HyPerksMenuEntryButton.ui";
+    private static final String TAB_ROOT = "#TabList";
     private static final String LIST_ROOT = "#CosmeticList";
     private static final String SEARCH_INPUT = "#SearchInput";
+    private static final String ACTIVE_EFFECT_LABEL = "#ActiveEffect";
+    private static final String ACTIVE_COUNT_LABEL = "#ActiveCount";
+    private static final String HINT_LABEL = "#HintLine";
 
     private final HyPerksCoreService coreService;
     private String searchQuery = "";
+    private String selectedCategoryId = CosmeticCategory.AURAS.getId();
 
     public HyPerksMenuPage(PlayerRef playerRef, HyPerksCoreService coreService) {
         super(playerRef, CustomPageLifetime.CanDismiss, MenuEventData.CODEC);
@@ -46,7 +53,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             SEARCH_INPUT,
             EventData.of(MenuEventData.KEY_SEARCH_QUERY, SEARCH_INPUT + ".Value")
         );
-        buildCosmeticList(playerReference, store, commands, events);
+        buildMenu(playerReference, store, commands, events);
     }
 
     @Override
@@ -65,6 +72,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         }
 
         boolean shouldRefresh = false;
+        String action = eventData.getAction();
 
         String incomingSearch = eventData.getSearchQuery();
         if (incomingSearch != null) {
@@ -72,10 +80,20 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             shouldRefresh = true;
         }
 
+        String tabCategoryId = eventData.getTabCategory();
+        if ("tab".equals(action) && tabCategoryId != null) {
+            this.selectedCategoryId = tabCategoryId;
+            shouldRefresh = true;
+        }
+
         String categoryId = eventData.getCategory();
         String cosmeticId = eventData.getCosmeticId();
-        if (categoryId != null && cosmeticId != null) {
-            this.coreService.equipFromMenu(player, categoryId, cosmeticId);
+        if ("toggle".equals(action) && categoryId != null && cosmeticId != null) {
+            this.coreService.toggleFromMenu(player, categoryId, cosmeticId);
+            shouldRefresh = true;
+        } else if (action == null && categoryId != null && cosmeticId != null) {
+            // Backward-compatible event handling.
+            this.coreService.toggleFromMenu(player, categoryId, cosmeticId);
             shouldRefresh = true;
         }
 
@@ -85,16 +103,18 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
 
         UICommandBuilder commands = new UICommandBuilder();
         UIEventBuilder events = new UIEventBuilder();
-        buildCosmeticList(playerReference, store, commands, events);
+        buildMenu(playerReference, store, commands, events);
         sendUpdate(commands, events, false);
     }
 
-    private void buildCosmeticList(
+    private void buildMenu(
         Ref<EntityStore> playerReference,
         Store<EntityStore> store,
         UICommandBuilder commands,
         UIEventBuilder events
     ) {
+        commands.set(SEARCH_INPUT + ".Value", this.searchQuery);
+        commands.clear(TAB_ROOT);
         commands.clear(LIST_ROOT);
 
         Player player = store.getComponent(playerReference, Player.getComponentType());
@@ -102,11 +122,82 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             return;
         }
 
-        List<HyPerksCoreService.MenuEntry> entries = this.coreService.getMenuEntries(player, this.searchQuery);
+        CosmeticCategory selectedCategory = resolveSelectedCategory(player);
+        this.selectedCategoryId = selectedCategory.getId();
+
+        buildTabs(player, selectedCategory, commands, events);
+        buildCosmeticList(player, selectedCategory, commands, events);
+        updateHeaderInfo(player, selectedCategory, commands);
+    }
+
+    private void updateHeaderInfo(Player player, CosmeticCategory selectedCategory, UICommandBuilder commands) {
+        String categoryName = this.coreService.getCategoryDisplayName(player, selectedCategory.getId());
+        String activeName = this.coreService.getActiveCosmeticDisplayName(player, selectedCategory.getId());
+        commands.set(
+            ACTIVE_EFFECT_LABEL + ".Text",
+            this.coreService.trForPlayer(player, "menu.gui.active_effect", categoryName, activeName)
+        );
+
+        long activeCount = this.coreService
+            .getMenuEntries(player, "", null)
+            .stream()
+            .filter(HyPerksCoreService.MenuEntry::isActive)
+            .count();
+        commands.set(ACTIVE_COUNT_LABEL + ".Text", this.coreService.trForPlayer(player, "menu.gui.active_count", activeCount));
+        commands.set(HINT_LABEL + ".Text", this.coreService.trForPlayer(player, "menu.gui.hint_toggle"));
+    }
+
+    private void buildTabs(
+        Player player,
+        CosmeticCategory selectedCategory,
+        UICommandBuilder commands,
+        UIEventBuilder events
+    ) {
+        int index = 0;
+        for (CosmeticCategory category : CosmeticCategory.values()) {
+            List<HyPerksCoreService.MenuEntry> entries = this.coreService.getMenuEntries(player, "", category.getId());
+            if (entries.isEmpty()) {
+                continue;
+            }
+
+            String itemPath = TAB_ROOT + "[" + index + "]";
+            commands.append(TAB_ROOT, TAB_UI_FILE);
+
+            String categoryName = this.coreService.getCategoryDisplayName(player, category.getId());
+            long unlocked = entries.stream().filter(HyPerksCoreService.MenuEntry::isUnlocked).count();
+            boolean activeInCategory = entries.stream().anyMatch(HyPerksCoreService.MenuEntry::isActive);
+            boolean selected = category == selectedCategory;
+
+            commands.set(itemPath + " #Name.Text", (selected ? "> " : "") + categoryName);
+            commands.set(itemPath + " #Meta.Text", this.coreService.trForPlayer(player, "menu.gui.tab_unlocked", unlocked, entries.size()));
+            commands.set(
+                itemPath + " #Status.Text",
+                activeInCategory
+                    ? this.coreService.trForPlayer(player, "menu.gui.tab_status.active")
+                    : (selected
+                        ? this.coreService.trForPlayer(player, "menu.gui.tab_status.open")
+                        : this.coreService.trForPlayer(player, "menu.gui.tab_status.view"))
+            );
+
+            EventData eventData = EventData
+                .of(MenuEventData.KEY_ACTION, "tab")
+                .append(MenuEventData.KEY_TAB_CATEGORY, category.getId());
+            events.addEventBinding(CustomUIEventBindingType.Activating, itemPath, eventData, false);
+            index++;
+        }
+    }
+
+    private void buildCosmeticList(
+        Player player,
+        CosmeticCategory selectedCategory,
+        UICommandBuilder commands,
+        UIEventBuilder events
+    ) {
+        List<HyPerksCoreService.MenuEntry> entries = this.coreService.getMenuEntries(player, this.searchQuery, selectedCategory.getId());
         if (entries.isEmpty()) {
             commands.appendInline(
                 LIST_ROOT,
-                "Label { Text: \"No cosmetics found\"; Style: (Alignment: Center, TextColor: #ffffff(0.75)); }"
+                "Label { Text: \"No cosmetics found in this tab.\"; Style: (Alignment: Center, TextColor: #ffffff(0.75)); }"
             );
             return;
         }
@@ -117,39 +208,69 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
 
             commands.append(LIST_ROOT, ENTRY_UI_FILE);
             commands.set(itemPath + " #Name.Text", entry.getDisplayName());
-            commands.set(itemPath + " #Meta.Text", entry.getDetailLine());
-            commands.set(itemPath + " #Status.Text", resolveStatusLabel(entry));
+            commands.set(
+                itemPath + " #Meta.Text",
+                entry.isActive()
+                    ? entry.getDetailLine() + " | " + this.coreService.trForPlayer(player, "menu.gui.click_to_disable")
+                    : entry.getDetailLine()
+            );
+            commands.set(itemPath + " #Status.Text", resolveStatusLabel(player, entry));
 
             EventData eventData = EventData
-                .of(MenuEventData.KEY_CATEGORY, entry.getCategoryId())
+                .of(MenuEventData.KEY_ACTION, "toggle")
+                .append(MenuEventData.KEY_CATEGORY, entry.getCategoryId())
                 .append(MenuEventData.KEY_COSMETIC, entry.getCosmeticId());
             events.addEventBinding(CustomUIEventBindingType.Activating, itemPath, eventData, false);
         }
     }
 
-    private String resolveStatusLabel(HyPerksCoreService.MenuEntry entry) {
+    private CosmeticCategory resolveSelectedCategory(Player player) {
+        CosmeticCategory selected = CosmeticCategory.fromId(this.selectedCategoryId);
+        if (selected != null && !this.coreService.getMenuEntries(player, "", selected.getId()).isEmpty()) {
+            return selected;
+        }
+
+        for (CosmeticCategory category : CosmeticCategory.values()) {
+            if (!this.coreService.getMenuEntries(player, "", category.getId()).isEmpty()) {
+                return category;
+            }
+        }
+        return CosmeticCategory.AURAS;
+    }
+
+    private String resolveStatusLabel(Player player, HyPerksCoreService.MenuEntry entry) {
         if (entry.isActive()) {
-            return "ACTIVE";
+            return this.coreService.trForPlayer(player, "status.active");
         }
         if (entry.isUnlocked()) {
-            return "UNLOCKED";
+            return this.coreService.trForPlayer(player, "status.unlocked");
         }
-        return "LOCKED";
+        return this.coreService.trForPlayer(player, "status.locked");
     }
 
     public static final class MenuEventData {
+        static final String KEY_ACTION = "Action";
         static final String KEY_CATEGORY = "Category";
         static final String KEY_COSMETIC = "Cosmetic";
+        static final String KEY_TAB_CATEGORY = "TabCategory";
         static final String KEY_SEARCH_QUERY = "@SearchQuery";
 
         static final BuilderCodec<MenuEventData> CODEC = BuilderCodec
             .builder(MenuEventData.class, MenuEventData::new)
+            .append(new KeyedCodec<>(KEY_ACTION, Codec.STRING), (data, value) -> data.action = value, data -> data.action)
+            .add()
             .append(new KeyedCodec<>(KEY_CATEGORY, Codec.STRING), (data, value) -> data.category = value, data -> data.category)
             .add()
             .append(
                 new KeyedCodec<>(KEY_COSMETIC, Codec.STRING),
                 (data, value) -> data.cosmeticId = value,
                 data -> data.cosmeticId
+            )
+            .add()
+            .append(
+                new KeyedCodec<>(KEY_TAB_CATEGORY, Codec.STRING),
+                (data, value) -> data.tabCategory = value,
+                data -> data.tabCategory
             )
             .add()
             .append(
@@ -160,9 +281,15 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             .add()
             .build();
 
+        private String action;
         private String category;
         private String cosmeticId;
+        private String tabCategory;
         private String searchQuery;
+
+        public String getAction() {
+            return action;
+        }
 
         public String getCategory() {
             return category;
@@ -170,6 +297,10 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
 
         public String getCosmeticId() {
             return cosmeticId;
+        }
+
+        public String getTabCategory() {
+            return tabCategory;
         }
 
         public String getSearchQuery() {

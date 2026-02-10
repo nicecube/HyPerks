@@ -13,25 +13,25 @@ public class CosmeticCatalog {
         catalog.cosmetics.add(c(
             "ember_halo",
             "auras",
-            "Server/Particles/Combat/Impact/Misc/Fire/Impact_Fire.particlesystem",
+            "Server/Particles/HyPerks/Auras/Ember_Halo.particlesystem",
             "orbit"
         ));
         catalog.cosmetics.add(c(
             "void_orbit",
             "auras",
-            "Server/Particles/Combat/Impact/Misc/Void/VoidImpact.particlesystem",
+            "Server/Particles/HyPerks/Auras/Void_Orbit.particlesystem",
             "orbit"
         ));
         catalog.cosmetics.add(c(
             "angel_wings",
             "auras",
-            "Server/Particles/Combat/Impact/Critical/Impact_Critical.particlesystem",
+            "Server/Particles/HyPerks/Auras/Angel_Wings.particlesystem",
             "wings"
         ));
         catalog.cosmetics.add(c(
             "heart_bloom",
             "auras",
-            "Server/Particles/Combat/Mace/Signature/Mace_Signature_Cast_End.particlesystem",
+            "Server/Particles/HyPerks/Auras/Heart_Bloom.particlesystem",
             "hearts"
         ));
 

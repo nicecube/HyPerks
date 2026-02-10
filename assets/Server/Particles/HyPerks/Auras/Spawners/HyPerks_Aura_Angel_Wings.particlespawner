@@ -1,0 +1,55 @@
+{
+  "EmitOffset": {
+    "X": { "Min": -0.05, "Max": 0.05 },
+    "Y": { "Min": -0.04, "Max": 0.06 },
+    "Z": { "Min": -0.05, "Max": 0.05 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0.96,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 8,
+  "ParticleLifeSpan": { "Min": 0.7, "Max": 1.1 },
+  "SpawnRate": { "Min": 2, "Max": 3 },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Aura_Angel_Wing.png",
+    "FrameSize": { "Width": 64, "Height": 64 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 1.0,
+        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
+        "Color": "#f7fbff"
+      },
+      "60": {
+        "Opacity": 0.7
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": { "X": { "Min": 0.24, "Max": 0.24 } },
+        "Color": "#dff0ff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": { "X": { "Min": 0.13, "Max": 0.2 } },
+      "Opacity": 0.94,
+      "Rotation": { "Z": { "Min": -25, "Max": 25 } }
+    }
+  },
+  "SpawnBurst": false,
+  "Attractors": [
+    {
+      "Position": { "X": 0, "Y": 0, "Z": 0 },
+      "LinearAcceleration": { "X": 0, "Y": 0.1, "Z": 0 },
+      "DampingMultiplier": { "X": 0.92, "Y": 0.92, "Z": 0.92 }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": { "Min": -180, "Max": 180 },
+    "Pitch": { "Min": 84, "Max": 90 },
+    "Speed": { "Min": 0.0, "Max": 0.03 }
+  }
+}

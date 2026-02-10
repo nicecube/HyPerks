@@ -1,13 +1,14 @@
 Button #Button {
-  Padding: (Full: 7);
-  Anchor: (Bottom: 4);
+  Padding: (Full: 8);
+  Anchor: (Bottom: 5);
   LayoutMode: Top;
   Style: (
+    Background: #0b1525(0.58),
     Hovered: (
-      Background: #000000(0.2)
+      Background: #163252(0.72)
     ),
     Pressed: (
-      Background: #000000(0.35)
+      Background: #1f4166(0.82)
     )
   );
 
@@ -23,13 +24,14 @@ Button #Button {
       Style: (
         RenderUppercase: true,
         FontSize: 10,
-        TextColor: #7a9cc6
+        TextColor: #7a9cc6,
+        RenderBold: true
       );
     }
   }
 
   Label #Meta {
-    Anchor: (Top: 4);
+    Anchor: (Top: 3);
     Style: (
       FontSize: 11,
       TextColor: #ffffff(0.65),

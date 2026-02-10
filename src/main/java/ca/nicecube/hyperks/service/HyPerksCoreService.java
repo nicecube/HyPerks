@@ -400,8 +400,17 @@ public class HyPerksCoreService {
     }
 
     public List<MenuEntry> getMenuEntries(Player player, String searchQuery) {
+        return getMenuEntries(player, searchQuery, null);
+    }
+
+    public List<MenuEntry> getMenuEntries(Player player, String searchQuery, String categoryFilterId) {
         if (player == null) {
             return List.of();
+        }
+
+        CosmeticCategory categoryFilter = null;
+        if (categoryFilterId != null && !categoryFilterId.isBlank()) {
+            categoryFilter = CosmeticCategory.fromId(categoryFilterId);
         }
 
         String normalizedSearch = searchQuery == null ? "" : searchQuery.trim().toLowerCase(Locale.ROOT);
@@ -410,6 +419,9 @@ public class HyPerksCoreService {
 
         List<MenuEntry> entries = new ArrayList<>();
         for (CosmeticCategory category : CosmeticCategory.values()) {
+            if (categoryFilter != null && category != categoryFilter) {
+                continue;
+            }
             List<CosmeticDefinition> cosmetics = new ArrayList<>(this.byCategory.getOrDefault(category, Map.of()).values());
             cosmetics.sort(Comparator.comparing(CosmeticDefinition::getId));
 
@@ -438,6 +450,50 @@ public class HyPerksCoreService {
     }
 
     public void equipFromMenu(Player player, String categoryId, String cosmeticId) {
+        setFromMenu(player, categoryId, cosmeticId, false);
+    }
+
+    public void toggleFromMenu(Player player, String categoryId, String cosmeticId) {
+        setFromMenu(player, categoryId, cosmeticId, true);
+    }
+
+    public String getCategoryDisplayName(Player player, String categoryId) {
+        CosmeticCategory category = CosmeticCategory.fromId(categoryId);
+        if (category == null) {
+            return categoryId == null ? "" : categoryId;
+        }
+        return tr(player, "menu.category." + category.getId());
+    }
+
+    public String getActiveCosmeticDisplayName(Player player, String categoryId) {
+        if (player == null) {
+            return "";
+        }
+
+        CosmeticCategory category = CosmeticCategory.fromId(categoryId);
+        if (category == null) {
+            return tr(player, "menu.active.none");
+        }
+
+        UUID playerUuid = resolvePlayerUuid(player);
+        if (playerUuid == null) {
+            return tr(player, "menu.active.none");
+        }
+
+        PlayerState state = this.playerStateService.get(playerUuid);
+        String activeId = state.getActive(category.getId());
+        if (activeId == null || activeId.isBlank()) {
+            return tr(player, "menu.active.none");
+        }
+
+        CosmeticDefinition cosmetic = this.byCategory.getOrDefault(category, Map.of()).get(activeId);
+        if (cosmetic == null) {
+            return activeId;
+        }
+        return tr(player, cosmetic.getNameKey());
+    }
+
+    private void setFromMenu(Player player, String categoryId, String cosmeticId, boolean toggleMode) {
         if (player == null || player.wasRemoved()) {
             return;
         }
@@ -473,6 +529,14 @@ public class HyPerksCoreService {
         }
 
         PlayerState state = this.playerStateService.get(playerUuid);
+        String current = state.getActive(category.getId());
+        if (toggleMode && cosmetic.getId().equalsIgnoreCase(current)) {
+            state.removeActive(category.getId());
+            this.playerStateService.save(playerUuid);
+            player.sendMessage(Message.raw(tr(player, "cmd.menu.toggled_off", tr(player, cosmetic.getNameKey()))));
+            return;
+        }
+
         state.setActive(category.getId(), cosmetic.getId());
         this.playerStateService.save(playerUuid);
         player.sendMessage(Message.raw(tr(player, "cmd.equip.success", tr(player, cosmetic.getNameKey()))));
@@ -618,6 +682,10 @@ public class HyPerksCoreService {
 
     public void sendRaw(CommandContext context, String message) {
         context.sendMessage(Message.raw(message));
+    }
+
+    public String trForPlayer(Player player, String key, Object... args) {
+        return tr(player, key, args);
     }
 
     private synchronized void restartRuntimeRenderer() {
@@ -777,6 +845,90 @@ public class HyPerksCoreService {
 
     private void renderAura(String effectId, CosmeticDefinition cosmetic, Vector3d position, Store<EntityStore> store, long frame) {
         String style = cosmetic.getRenderStyle();
+        String cosmeticId = cosmetic.getId();
+        if ("angel_wings".equals(cosmeticId)) {
+            double flap = Math.sin(frame * 0.10D) * 0.10D;
+            double baseY = position.y + 1.35D + flap;
+            double backZ = position.z - 0.20D;
+            double[][] wingCurve = {
+                {0.22D, 0.12D},
+                {0.34D, 0.26D},
+                {0.48D, 0.40D},
+                {0.60D, 0.34D},
+                {0.50D, 0.16D},
+                {0.36D, 0.05D}
+            };
+            for (double[] point : wingCurve) {
+                double wingX = point[0];
+                double wingY = baseY + point[1];
+                double wingZ = backZ - (point[0] * 0.07D);
+                spawnParticle(effectId, position.x - wingX, wingY, wingZ, store);
+                spawnParticle(effectId, position.x + wingX, wingY, wingZ, store);
+            }
+            if ((frame % 2L) == 0L) {
+                spawnParticle(effectId, position.x, position.y + 1.62D + (flap * 0.4D), position.z - 0.12D, store);
+            }
+            return;
+        }
+
+        if ("ember_halo".equals(cosmeticId)) {
+            double phase = frame * 0.14D;
+            double radius = 0.46D;
+            double y = position.y + 1.95D;
+            spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
+            spawnParticle(
+                effectId,
+                position.x + Math.cos(phase + Math.PI) * radius,
+                y + 0.02D,
+                position.z + Math.sin(phase + Math.PI) * radius,
+                store
+            );
+            return;
+        }
+
+        if ("void_orbit".equals(cosmeticId)) {
+            double phaseOuter = frame * 0.11D;
+            double phaseInner = -frame * 0.09D;
+            double outerRadius = 0.58D;
+            double innerRadius = 0.34D;
+            double yOuter = position.y + 1.82D;
+            double yInner = position.y + 2.02D;
+
+            for (int i = 0; i < 3; i++) {
+                double angle = phaseOuter + (Math.PI * 2D * i / 3D);
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(angle) * outerRadius,
+                    yOuter + Math.sin(phaseOuter + i) * 0.04D,
+                    position.z + Math.sin(angle) * outerRadius,
+                    store
+                );
+            }
+
+            for (int i = 0; i < 2; i++) {
+                double angle = phaseInner + (Math.PI * 2D * i / 2D);
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(angle) * innerRadius,
+                    yInner + Math.sin(phaseInner + i) * 0.03D,
+                    position.z + Math.sin(angle) * innerRadius,
+                    store
+                );
+            }
+            return;
+        }
+
+        if ("heart_bloom".equals(cosmeticId)) {
+            double bob = Math.sin(frame * 0.12D) * 0.06D;
+            double y = position.y + 2.02D + bob;
+            spawnParticle(effectId, position.x - 0.16D, y, position.z, store);
+            spawnParticle(effectId, position.x + 0.16D, y, position.z, store);
+            if ((frame % 2L) == 0L) {
+                spawnParticle(effectId, position.x, y + 0.11D, position.z, store);
+            }
+            return;
+        }
+
         if ("wings".equals(style)) {
             double flap = Math.sin(frame * 0.35D) * 0.18D;
             spawnParticle(effectId, position.x - 0.55D, position.y + 1.55D + flap, position.z - 0.2D, store);
@@ -832,18 +984,34 @@ public class HyPerksCoreService {
         double yBase = position.y + 2.05D;
 
         if ("crown".equals(style)) {
+            int crownPoints = 4;
             double radius = 0.42D;
-            for (int i = 0; i < 4; i++) {
-                double angle = phase + (Math.PI * 2D * i / 4D);
+            double wobble = 0.08D;
+            long centerSpawnEvery = 2L;
+
+            if ("vip_plus_aura".equals(cosmeticId)) {
+                crownPoints = 3;
+                radius = 0.36D;
+                wobble = 0.05D;
+                centerSpawnEvery = 4L;
+            } else if ("mvp_plus_aura".equals(cosmeticId)) {
+                crownPoints = 3;
+                radius = 0.38D;
+                wobble = 0.05D;
+                centerSpawnEvery = 4L;
+            }
+
+            for (int i = 0; i < crownPoints; i++) {
+                double angle = phase + (Math.PI * 2D * i / crownPoints);
                 spawnParticle(
                     effectId,
                     position.x + Math.cos(angle) * radius,
-                    yBase + Math.sin(phase + i) * 0.08D,
+                    yBase + Math.sin(phase + i) * wobble,
                     position.z + Math.sin(angle) * radius,
                     store
                 );
             }
-            if ((frame % 2L) == 0L) {
+            if ((frame % centerSpawnEvery) == 0L) {
                 spawnParticle(effectId, position.x, yBase + 0.35D, position.z, store);
             }
             return;
@@ -949,17 +1117,24 @@ public class HyPerksCoreService {
         Store<EntityStore> store,
         long frame
     ) {
+        if ("rank_stream".equals(cosmetic.getRenderStyle()) && (frame % 3L) != 0L) {
+            return;
+        }
+        if (!"rank_stream".equals(cosmetic.getRenderStyle()) && (frame % 2L) != 0L) {
+            return;
+        }
+
         if ("rank_stream".equals(cosmetic.getRenderStyle())) {
-            double phase = frame * 0.34D;
-            double radius = 0.20D;
+            double phase = frame * 0.24D;
+            double radius = 0.14D;
             double x = position.x + Math.cos(phase) * radius;
             double z = position.z + Math.sin(phase) * radius;
             spawnParticle(effectId, x, position.y + 0.08D, z, store);
             return;
         }
 
-        double side = Math.sin(frame * 0.12D) * 0.18D;
-        double bob = Math.sin(frame * 0.07D) * 0.10D;
+        double side = Math.sin(frame * 0.10D) * 0.14D;
+        double bob = Math.sin(frame * 0.05D) * 0.07D;
         double y = position.y + 2.35D + bob;
         spawnParticle(effectId, position.x + side, y, position.z, store);
 
@@ -975,13 +1150,17 @@ public class HyPerksCoreService {
         Store<EntityStore> store,
         long frame
     ) {
+        if ((frame % 4L) != 0L) {
+            return;
+        }
+
         if (!"crown".equals(cosmetic.getRenderStyle())) {
             renderFloatingBadge(effectId, cosmetic, position, store, frame);
             return;
         }
 
-        double phase = frame * 0.20D;
-        double radius = 0.32D;
+        double phase = frame * 0.12D;
+        double radius = 0.24D;
         double y = position.y + 2.65D;
 
         spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
@@ -993,7 +1172,7 @@ public class HyPerksCoreService {
             store
         );
 
-        if ((frame % 2L) == 0L) {
+        if ((frame % 8L) == 0L) {
             spawnParticle(effectId, position.x, y + 0.22D, position.z, store);
         }
     }

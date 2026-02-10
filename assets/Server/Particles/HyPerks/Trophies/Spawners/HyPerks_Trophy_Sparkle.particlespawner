@@ -5,15 +5,9 @@
   "ParticleRotateWithSpawner": false,
   "TrailSpawnerPositionMultiplier": 0,
   "TrailSpawnerRotationMultiplier": 1,
-  "MaxConcurrentParticles": 3,
-  "ParticleLifeSpan": {
-    "Min": 0.2,
-    "Max": 0.35
-  },
-  "SpawnRate": {
-    "Min": 2,
-    "Max": 4
-  },
+  "MaxConcurrentParticles": 2,
+  "ParticleLifeSpan": { "Min": 0.28, "Max": 0.5 },
+  "SpawnRate": { "Min": 1, "Max": 2 },
   "Particle": {
     "Texture": "Particles/Textures/Basic/Glow_Star.png",
     "ScaleRatioConstraint": "OneToOne",
@@ -59,4 +53,5 @@
   "RenderMode": "Erosion",
   "SpawnBurst": false
 }
+
 
