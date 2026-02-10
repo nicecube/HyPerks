@@ -25,7 +25,6 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
     private static final String ENTRY_UI_FILE = "Pages/HyPerksMenuEntryButton.ui";
     private static final String TAB_ROOT = "#TabList";
     private static final String LIST_ROOT = "#EntryList";
-    private static final String ROW_BUTTON = "#Button";
     private static final String ACTIVE_EFFECT_LABEL = "#ActiveEffect";
     private static final String ACTIVE_COUNT_LABEL = "#ActiveCount";
     private static final String HINT_LABEL = "#HintLine";
@@ -162,7 +161,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             }
 
             String itemPath = TAB_ROOT + "[" + index + "]";
-            String buttonPath = itemPath + " " + ROW_BUTTON;
+            String buttonPath = itemPath;
             commands.append(TAB_ROOT, TAB_UI_FILE);
 
             String categoryName = this.coreService.getCategoryDisplayName(player, category.getId());
@@ -207,7 +206,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         for (int index = 0; index < entries.size(); index++) {
             HyPerksCoreService.MenuEntry entry = entries.get(index);
             String itemPath = LIST_ROOT + "[" + index + "]";
-            String buttonPath = itemPath + " " + ROW_BUTTON;
+            String buttonPath = itemPath;
 
             commands.append(LIST_ROOT, ENTRY_UI_FILE);
             commands.set(buttonPath + " #Name.Text", buildEntryName(entry));
