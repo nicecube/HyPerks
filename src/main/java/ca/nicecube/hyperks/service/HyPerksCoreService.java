@@ -5,6 +5,8 @@ import ca.nicecube.hyperks.config.CosmeticDefinition;
 import ca.nicecube.hyperks.config.HyPerksConfig;
 import ca.nicecube.hyperks.model.CosmeticCategory;
 import ca.nicecube.hyperks.model.PlayerState;
+import ca.nicecube.hyperks.ui.HyPerksMenuPage;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -153,6 +155,23 @@ public class HyPerksCoreService {
     }
 
     public void showMenu(CommandContext context) {
+        if (this.config.getMenu().isGuiEnabled() && context.isPlayer()) {
+            Player player = context.senderAs(Player.class);
+            if (openGuiMenu(player)) {
+                send(context, "cmd.menu.gui_opened");
+                return;
+            }
+
+            send(context, "cmd.menu.gui_failed");
+            if (!this.config.getMenu().isGuiFallbackToChat()) {
+                return;
+            }
+        }
+
+        sendChatMenu(context);
+    }
+
+    private void sendChatMenu(CommandContext context) {
         send(context, "cmd.menu.title");
         send(context, "cmd.menu.chat_mode");
         send(context, "cmd.menu.line", "menu");
@@ -171,6 +190,48 @@ public class HyPerksCoreService {
             send(context, "cmd.menu.category_line", category.getId(), loaded);
         }
         send(context, "cmd.menu.categories", categorySummary());
+    }
+
+    private boolean openGuiMenu(Player player) {
+        if (player == null || player.wasRemoved()) {
+            return false;
+        }
+
+        World world = player.getWorld();
+        if (world == null || !world.isAlive()) {
+            return false;
+        }
+
+        Ref<EntityStore> playerReference = player.getReference();
+        if (playerReference == null) {
+            return false;
+        }
+
+        world.execute(() -> {
+            try {
+                Store<EntityStore> store = world.getEntityStore().getStore();
+                Player livePlayer = store.getComponent(playerReference, Player.getComponentType());
+                PlayerRef livePlayerRef = store.getComponent(playerReference, PlayerRef.getComponentType());
+                if (livePlayer == null || livePlayer.wasRemoved()) {
+                    return;
+                }
+                if (livePlayerRef == null) {
+                    return;
+                }
+
+                livePlayer
+                    .getPageManager()
+                    .openCustomPage(
+                        playerReference,
+                        store,
+                        new HyPerksMenuPage(livePlayerRef, this)
+                    );
+            } catch (Exception ex) {
+                this.logger.atWarning().withCause(ex).log("[HyPerks] Failed to open GUI menu.");
+            }
+        });
+
+        return true;
     }
 
     public void showStatus(CommandContext context) {
@@ -338,6 +399,85 @@ public class HyPerksCoreService {
         }
     }
 
+    public List<MenuEntry> getMenuEntries(Player player, String searchQuery) {
+        if (player == null) {
+            return List.of();
+        }
+
+        String normalizedSearch = searchQuery == null ? "" : searchQuery.trim().toLowerCase(Locale.ROOT);
+        UUID playerUuid = resolvePlayerUuid(player);
+        PlayerState playerState = playerUuid == null ? null : this.playerStateService.get(playerUuid);
+
+        List<MenuEntry> entries = new ArrayList<>();
+        for (CosmeticCategory category : CosmeticCategory.values()) {
+            List<CosmeticDefinition> cosmetics = new ArrayList<>(this.byCategory.getOrDefault(category, Map.of()).values());
+            cosmetics.sort(Comparator.comparing(CosmeticDefinition::getId));
+
+            for (CosmeticDefinition cosmetic : cosmetics) {
+                String localizedName = tr(player, cosmetic.getNameKey());
+                boolean unlocked = hasCosmeticPermission(player, cosmetic);
+                boolean active = playerState != null
+                    && cosmetic.getId().equalsIgnoreCase(playerState.getActive(category.getId()));
+
+                String searchable = (
+                    category.getId() + " " + cosmetic.getId() + " " + localizedName
+                ).toLowerCase(Locale.ROOT);
+                if (!normalizedSearch.isBlank() && !searchable.contains(normalizedSearch)) {
+                    continue;
+                }
+
+                String statusLabel = unlocked ? tr(player, "status.unlocked") : tr(player, "status.locked");
+                String detailLine = category.getId() + " / " + cosmetic.getId() + " / " + statusLabel;
+                String displayName = active ? "[*] " + localizedName : localizedName;
+
+                entries.add(new MenuEntry(category.getId(), cosmetic.getId(), displayName, detailLine, active, unlocked));
+            }
+        }
+
+        return entries;
+    }
+
+    public void equipFromMenu(Player player, String categoryId, String cosmeticId) {
+        if (player == null || player.wasRemoved()) {
+            return;
+        }
+
+        CosmeticCategory category = CosmeticCategory.fromId(categoryId);
+        if (category == null) {
+            player.sendMessage(Message.raw(tr(player, "error.category_not_found", categoryId)));
+            return;
+        }
+
+        CosmeticDefinition cosmetic = this.byCategory
+            .getOrDefault(category, Map.of())
+            .get(normalizeId(cosmeticId));
+
+        if (cosmetic == null || !cosmetic.isEnabled()) {
+            player.sendMessage(Message.raw(tr(player, "error.cosmetic_not_found", category.getId(), cosmeticId)));
+            return;
+        }
+
+        if (!isWorldAllowed(player)) {
+            player.sendMessage(Message.raw(tr(player, "error.world_not_allowed")));
+            return;
+        }
+
+        if (!hasCosmeticPermission(player, cosmetic)) {
+            player.sendMessage(Message.raw(tr(player, "error.no_permission")));
+            return;
+        }
+
+        UUID playerUuid = resolvePlayerUuid(player);
+        if (playerUuid == null) {
+            return;
+        }
+
+        PlayerState state = this.playerStateService.get(playerUuid);
+        state.setActive(category.getId(), cosmetic.getId());
+        this.playerStateService.save(playerUuid);
+        player.sendMessage(Message.raw(tr(player, "cmd.equip.success", tr(player, cosmetic.getNameKey()))));
+    }
+
     public void setPlayerLanguage(CommandContext context, String localeCandidate) {
         if (!context.isPlayer()) {
             send(context, "error.player_only");
@@ -427,30 +567,45 @@ public class HyPerksCoreService {
             return;
         }
 
-        UUID playerUuid = resolvePlayerUuid(player);
-        if (playerUuid == null) {
+        World world = player.getWorld();
+        Ref<EntityStore> playerReference = event.getPlayerRef();
+        if (world == null || !world.isAlive() || playerReference == null) {
             return;
         }
 
-        invalidatePermissionCache(playerUuid);
-        this.playerStateService.invalidate(playerUuid);
-        PlayerState state = this.playerStateService.refresh(playerUuid);
+        world.execute(() -> {
+            Store<EntityStore> store = world.getEntityStore().getStore();
+            Player livePlayer = store.getComponent(playerReference, Player.getComponentType());
+            PlayerRef livePlayerRef = store.getComponent(playerReference, PlayerRef.getComponentType());
+            if (livePlayer == null || livePlayer.wasRemoved() || livePlayerRef == null) {
+                return;
+            }
 
-        if (this.config.isAutoShowMenuHintOnJoin()) {
-            player.sendMessage(Message.raw(tr(player, "join.hint")));
-        }
+            UUID playerUuid = livePlayerRef.getUuid();
+            if (playerUuid == null) {
+                return;
+            }
 
-        if (!state.getAllActive().isEmpty()) {
-            player.sendMessage(Message.raw(tr(player, "join.active_loaded", state.getAllActive().size())));
-        }
+            invalidatePermissionCache(playerUuid);
+            this.playerStateService.invalidate(playerUuid);
+            PlayerState state = this.playerStateService.refresh(playerUuid);
 
-        if (this.config.isDebugMode()) {
-            this.logger.atInfo().log(
-                "[HyPerks] Player ready: %s (active cosmetics=%s)",
-                playerUuid,
-                state.getAllActive().size()
-            );
-        }
+            if (this.config.isAutoShowMenuHintOnJoin()) {
+                livePlayer.sendMessage(Message.raw(tr(playerUuid, "join.hint")));
+            }
+
+            if (!state.getAllActive().isEmpty()) {
+                livePlayer.sendMessage(Message.raw(tr(playerUuid, "join.active_loaded", state.getAllActive().size())));
+            }
+
+            if (this.config.isDebugMode()) {
+                this.logger.atInfo().log(
+                    "[HyPerks] Player ready: %s (active cosmetics=%s)",
+                    playerUuid,
+                    state.getAllActive().size()
+                );
+            }
+        });
     }
 
     public boolean canReload(CommandSender sender) {
@@ -659,7 +814,21 @@ public class HyPerksCoreService {
         long frame
     ) {
         String style = cosmetic.getRenderStyle();
-        double phase = frame * 0.17D;
+        String cosmeticId = cosmetic.getId();
+        double phaseSpeed = 0.17D;
+        double orbitRadius = 0.62D;
+        double orbitWobble = 0.12D;
+        int orbitPoints = 5;
+
+        if ("vip_aura".equals(cosmeticId)) {
+            // VIP aura: calmer and smaller ring.
+            phaseSpeed = 0.10D;
+            orbitRadius = 0.46D;
+            orbitWobble = 0.06D;
+            orbitPoints = 3;
+        }
+
+        double phase = frame * phaseSpeed;
         double yBase = position.y + 2.05D;
 
         if ("crown".equals(style)) {
@@ -681,18 +850,36 @@ public class HyPerksCoreService {
         }
 
         if ("pillar".equals(style)) {
-            for (int i = 0; i < 3; i++) {
-                double y = position.y + 0.35D + (i * 0.65D) + Math.sin((frame + i) * 0.15D) * 0.06D;
+            int points = 3;
+            double verticalStep = 0.65D;
+            double bobAmplitude = 0.06D;
+            double bobSpeed = 0.15D;
+
+            if ("mvp_aura".equals(cosmeticId)) {
+                // MVP aura: fewer particles, slower pulse and tighter height spread.
+                points = 2;
+                verticalStep = 0.58D;
+                bobAmplitude = 0.03D;
+                bobSpeed = 0.08D;
+            }
+
+            for (int i = 0; i < points; i++) {
+                double y = position.y + 0.35D + (i * verticalStep) + Math.sin((frame + i) * bobSpeed) * bobAmplitude;
                 spawnParticle(effectId, position.x, y, position.z, store);
             }
             return;
         }
 
-        double radius = 0.62D;
-        for (int i = 0; i < 5; i++) {
-            double angle = phase + (Math.PI * 2D * i / 5D);
-            double y = yBase + Math.sin(phase + i) * 0.12D;
-            spawnParticle(effectId, position.x + Math.cos(angle) * radius, y, position.z + Math.sin(angle) * radius, store);
+        for (int i = 0; i < orbitPoints; i++) {
+            double angle = phase + (Math.PI * 2D * i / orbitPoints);
+            double y = yBase + Math.sin(phase + i) * orbitWobble;
+            spawnParticle(
+                effectId,
+                position.x + Math.cos(angle) * orbitRadius,
+                y,
+                position.z + Math.sin(angle) * orbitRadius,
+                store
+            );
         }
     }
 
@@ -1027,14 +1214,25 @@ public class HyPerksCoreService {
     }
 
     private String tr(CommandSender sender, String key, Object... args) {
-        String locale = this.config.getDefaultLanguage();
+        UUID senderUuid = null;
         if (sender != null) {
-            UUID senderUuid = sender.getUuid();
-            if (senderUuid != null) {
-                PlayerState state = this.playerStateService.get(senderUuid);
-                if (state.getLocale() != null && !state.getLocale().isBlank()) {
-                    locale = state.getLocale();
+            try {
+                senderUuid = sender.getUuid();
+            } catch (Exception ex) {
+                if (this.config.isDebugMode()) {
+                    this.logger.atFine().withCause(ex).log("[HyPerks] Could not read sender UUID on this thread.");
                 }
+            }
+        }
+        return tr(senderUuid, key, args);
+    }
+
+    private String tr(UUID senderUuid, String key, Object... args) {
+        String locale = this.config.getDefaultLanguage();
+        if (senderUuid != null) {
+            PlayerState state = this.playerStateService.get(senderUuid);
+            if (state.getLocale() != null && !state.getLocale().isBlank()) {
+                locale = state.getLocale();
             }
         }
         return this.localizationService.translate(locale, key, args);
@@ -1106,8 +1304,24 @@ public class HyPerksCoreService {
         if (player == null) {
             return null;
         }
-        CommandSender sender = player;
-        return sender.getUuid();
+        World world = player.getWorld();
+        Ref<EntityStore> playerReference = player.getReference();
+        if (world == null || playerReference == null) {
+            return null;
+        }
+
+        try {
+            Store<EntityStore> store = world.getEntityStore().getStore();
+            PlayerRef playerRef = store.getComponent(playerReference, PlayerRef.getComponentType());
+            if (playerRef != null) {
+                return playerRef.getUuid();
+            }
+        } catch (Exception ex) {
+            if (this.config.isDebugMode()) {
+                this.logger.atFine().withCause(ex).log("[HyPerks] Could not resolve player UUID on this thread.");
+            }
+        }
+        return null;
     }
 
     private String normalizeId(String input) {
@@ -1130,6 +1344,55 @@ public class HyPerksCoreService {
             empty.put(category, Map.of());
         }
         return Collections.unmodifiableMap(empty);
+    }
+
+    public static final class MenuEntry {
+        private final String categoryId;
+        private final String cosmeticId;
+        private final String displayName;
+        private final String detailLine;
+        private final boolean active;
+        private final boolean unlocked;
+
+        public MenuEntry(
+            String categoryId,
+            String cosmeticId,
+            String displayName,
+            String detailLine,
+            boolean active,
+            boolean unlocked
+        ) {
+            this.categoryId = categoryId;
+            this.cosmeticId = cosmeticId;
+            this.displayName = displayName;
+            this.detailLine = detailLine;
+            this.active = active;
+            this.unlocked = unlocked;
+        }
+
+        public String getCategoryId() {
+            return categoryId;
+        }
+
+        public String getCosmeticId() {
+            return cosmeticId;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public String getDetailLine() {
+            return detailLine;
+        }
+
+        public boolean isActive() {
+            return active;
+        }
+
+        public boolean isUnlocked() {
+            return unlocked;
+        }
     }
 
     private static final class RenderThreadFactory implements ThreadFactory {

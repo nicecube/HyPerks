@@ -6,6 +6,8 @@
   "cmd.menu.gui_opened": "GUI menu opened.",
   "cmd.menu.gui_failed": "GUI menu is unavailable right now.",
   "cmd.menu.gui_hint": "Tip: if GUI closes, use the commands below.",
+  "cmd.menu.chat_mode": "Chat command mode:",
+  "cmd.menu.example": "Example: /hyperks equip trails mvp_trail",
 
   "cmd.list.title": "Cosmetics list ({0}) - {1} entries",
   "cmd.list.empty": "No cosmetics found.",

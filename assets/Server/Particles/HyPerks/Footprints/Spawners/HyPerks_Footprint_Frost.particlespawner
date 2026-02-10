@@ -1,0 +1,55 @@
+{
+  "EmitOffset": {
+    "X": { "Min": -0.04, "Max": 0.04 },
+    "Y": { "Min": 0.0, "Max": 0.01 },
+    "Z": { "Min": -0.04, "Max": 0.04 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0.86,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 5,
+  "ParticleLifeSpan": { "Min": 1.4, "Max": 2.2 },
+  "SpawnRate": { "Min": 1, "Max": 2 },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Aura_MVP.png",
+    "FrameSize": { "Width": 64, "Height": 64 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 1.0,
+        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
+        "Color": "#93d8ff"
+      },
+      "60": {
+        "Opacity": 0.5
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": { "X": { "Min": 0.15, "Max": 0.15 } },
+        "Color": "#d9f3ff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": { "X": { "Min": 0.09, "Max": 0.13 } },
+      "Opacity": 0.88,
+      "Rotation": { "Z": { "Min": 0, "Max": 360 } }
+    }
+  },
+  "SpawnBurst": true,
+  "Attractors": [
+    {
+      "Position": { "X": 0, "Y": 0, "Z": 0 },
+      "LinearAcceleration": { "X": 0, "Y": 0.04, "Z": 0 },
+      "DampingMultiplier": { "X": 0.93, "Y": 0.91, "Z": 0.93 }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": { "Min": -180, "Max": 180 },
+    "Pitch": { "Min": 85, "Max": 90 },
+    "Speed": { "Min": 0.0, "Max": 0.03 }
+  }
+}

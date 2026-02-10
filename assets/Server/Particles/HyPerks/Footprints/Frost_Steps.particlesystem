@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Footprint_Frost",
+      "FixedRotation": false
+    }
+  ],
+  "LifeSpan": 2.5,
+  "IsImportant": false
+}

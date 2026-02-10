@@ -88,25 +88,25 @@ public class CosmeticCatalog {
         catalog.cosmetics.add(c(
             "flame_steps",
             "footprints",
-            "Server/Particles/Block/Lava/Block_Run_Lava.particlesystem",
+            "Server/Particles/HyPerks/Footprints/Flame_Steps.particlesystem",
             "steps"
         ));
         catalog.cosmetics.add(c(
             "frost_steps",
             "footprints",
-            "Server/Particles/Block/Snow/Block_Run_Snow.particlesystem",
+            "Server/Particles/HyPerks/Footprints/Frost_Steps.particlesystem",
             "steps"
         ));
         catalog.cosmetics.add(c(
             "heart_steps",
             "footprints",
-            "Server/Particles/Block/Grass/Block_Sprint_Grass.particlesystem",
+            "Server/Particles/HyPerks/Footprints/Heart_Steps.particlesystem",
             "steps"
         ));
         catalog.cosmetics.add(c(
             "rune_steps",
             "footprints",
-            "Server/Particles/Block/Crystal/Block_Run_Crystal.particlesystem",
+            "Server/Particles/HyPerks/Footprints/Rune_Steps.particlesystem",
             "steps"
         ));
 

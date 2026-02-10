@@ -53,6 +53,7 @@ public class CosmeticDefinition {
         }
 
         this.effectId = normalizeAssetPath(this.effectId);
+        this.effectId = migrateLegacyFootprintEffectId(this.effectId);
         if (this.effectId.isBlank()) {
             this.effectId = defaultEffectId(this.category);
         }
@@ -139,10 +140,56 @@ public class CosmeticDefinition {
             case "auras" -> "Server/Particles/Combat/Impact/Misc/Fire/Impact_Fire.particlesystem";
             case "auras_premium" -> "Server/Particles/HyPerks/PremiumAuras/VIP_Aura.particlesystem";
             case "trails" -> "Server/Particles/HyPerks/Trails/VIP_Trail.particlesystem";
-            case "footprints" -> "Server/Particles/Block/Sand/Block_Run_Sand.particlesystem";
+            case "footprints" -> "Server/Particles/HyPerks/Footprints/Flame_Steps.particlesystem";
             case "floating_badges" -> "Server/Particles/HyPerks/RankTags/VIP_Stream.particlesystem";
             case "trophy_badges" -> "Server/Particles/HyPerks/Trophies/Season_Champion_Crown.particlesystem";
             default -> "Server/Particles/Combat/Impact/Critical/Impact_Critical.particlesystem";
+        };
+    }
+
+    private String migrateLegacyFootprintEffectId(String currentEffectId) {
+        if (!"footprints".equals(this.category)) {
+            return currentEffectId;
+        }
+
+        String current = currentEffectId == null ? "" : currentEffectId;
+        String recommended = footprintEffectForId(this.id);
+        if (recommended.isBlank()) {
+            return current;
+        }
+
+        if (current.isBlank()) {
+            return recommended;
+        }
+
+        return switch (this.id) {
+            case "flame_steps" -> current.equals("Server/Particles/Block/Lava/Block_Run_Lava.particlesystem")
+                ? recommended
+                : current;
+            case "frost_steps" -> current.equals("Server/Particles/Block/Snow/Block_Run_Snow.particlesystem")
+                ? recommended
+                : current;
+            case "heart_steps" -> current.equals("Server/Particles/Block/Grass/Block_Sprint_Grass.particlesystem")
+                ? recommended
+                : current;
+            case "rune_steps" -> current.equals("Server/Particles/Block/Crystal/Block_Run_Crystal.particlesystem")
+                ? recommended
+                : current;
+            default -> current;
+        };
+    }
+
+    private String footprintEffectForId(String cosmeticId) {
+        if (cosmeticId == null) {
+            return "";
+        }
+
+        return switch (cosmeticId) {
+            case "flame_steps" -> "Server/Particles/HyPerks/Footprints/Flame_Steps.particlesystem";
+            case "frost_steps" -> "Server/Particles/HyPerks/Footprints/Frost_Steps.particlesystem";
+            case "heart_steps" -> "Server/Particles/HyPerks/Footprints/Heart_Steps.particlesystem";
+            case "rune_steps" -> "Server/Particles/HyPerks/Footprints/Rune_Steps.particlesystem";
+            default -> "";
         };
     }
 

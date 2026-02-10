@@ -1,0 +1,55 @@
+{
+  "EmitOffset": {
+    "X": { "Min": -0.04, "Max": 0.04 },
+    "Y": { "Min": 0.0, "Max": 0.01 },
+    "Z": { "Min": -0.04, "Max": 0.04 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0.9,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 5,
+  "ParticleLifeSpan": { "Min": 1.4, "Max": 2.2 },
+  "SpawnRate": { "Min": 1, "Max": 2 },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Trophy_Rune.png",
+    "FrameSize": { "Width": 64, "Height": 64 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 1.0,
+        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
+        "Color": "#b8b9ff"
+      },
+      "60": {
+        "Opacity": 0.5
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": { "X": { "Min": 0.17, "Max": 0.17 } },
+        "Color": "#e7e8ff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": { "X": { "Min": 0.1, "Max": 0.14 } },
+      "Opacity": 0.9,
+      "Rotation": { "Z": { "Min": 0, "Max": 360 } }
+    }
+  },
+  "SpawnBurst": true,
+  "Attractors": [
+    {
+      "Position": { "X": 0, "Y": 0, "Z": 0 },
+      "LinearAcceleration": { "X": 0, "Y": 0.04, "Z": 0 },
+      "DampingMultiplier": { "X": 0.92, "Y": 0.9, "Z": 0.92 }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": { "Min": -180, "Max": 180 },
+    "Pitch": { "Min": 85, "Max": 90 },
+    "Speed": { "Min": 0.0, "Max": 0.03 }
+  }
+}
