@@ -187,6 +187,28 @@ function Ring-Quads(
     return ,$nodes
 }
 
+function Ring-Quads-Vertical(
+    [string]$prefix,
+    [int]$count,
+    [double]$radius,
+    [double]$z,
+    [int]$sx,
+    [int]$sy,
+    [int]$tx,
+    [int]$ty,
+    [double]$angleOffset = 0.0
+) {
+    $nodes = @()
+    for ($i = 0; $i -lt $count; $i++) {
+        $deg = ((360.0 * $i) / $count) + $angleOffset
+        $rad = $deg * [Math]::PI / 180.0
+        $x = [Math]::Cos($rad) * $radius
+        $y = [Math]::Sin($rad) * $radius
+        $nodes += N ("$prefix$($i + 1)") (V $x $y $z) (SQuad $sx $sy $tx $ty)
+    }
+    return ,$nodes
+}
+
 function New-Color([string]$hex, [int]$alpha = 255) {
     $value = $hex.TrimStart("#")
     $r = [Convert]::ToInt32($value.Substring(0, 2), 16)
@@ -348,72 +370,100 @@ function Draw-FireIce-Atlas([string]$outPath) {
 function Draw-Storm-Atlas([string]$outPath) {
     $canvas = New-Canvas256
     $g = $canvas.Graphics
-    $rand = [System.Random]::new(47219)
+    $rand = [System.Random]::new(77821)
     try {
-        Fill-TileGradient $g 0 0 "2C3A57" "6D87AD"   # Soft clouds
-        Fill-TileGradient $g 1 0 "1A273E" "3F587C"   # Dark cloud layer
-        Fill-TileGradient $g 2 0 "111A2D" "2A3356"   # Lightning
-        Fill-TileGradient $g 3 0 "172A43" "35506E"   # Rain/mist
+        Fill-TileGradient $g 0 0 "F7FBFF" "D8E9F8"   # Cloud body
+        Fill-TileGradient $g 1 0 "2A3042" "222B3F"   # Eyes/mouth dark ink
+        Fill-TileGradient $g 2 0 "FFE76B" "FFBE44"   # Sun
+        Fill-TileGradient $g 3 0 "FFC0A8" "8ED2FF"   # Blush + rain accents
 
-        # Cloud blobs tile 0 and tile 1
-        foreach ($tile in @(0, 1)) {
-            $baseX = $tile * 64
-            for ($i = 0; $i -lt 140; $i++) {
-                $x = $baseX + $rand.Next(0, 64)
-                $y = $rand.Next(4, 62)
-                $w = $rand.Next(7, 20)
-                $h = $rand.Next(6, 16)
-                $alpha = if ($tile -eq 0) { $rand.Next(35, 95) } else { $rand.Next(25, 75) }
-                $c = if ($tile -eq 0) { New-Color "D7E6FF" $alpha } else { New-Color "A6B9D5" $alpha }
-                $b = New-Object System.Drawing.SolidBrush($c)
-                try {
-                    $g.FillEllipse($b, $x - ($w / 2), $y - ($h / 2), $w, $h)
-                } finally {
-                    $b.Dispose()
-                }
+        # Tile 0: fluffy cloud blobs
+        for ($i = 0; $i -lt 160; $i++) {
+            $x = $rand.Next(1, 63)
+            $y = $rand.Next(1, 63)
+            $w = $rand.Next(8, 24)
+            $h = $rand.Next(7, 18)
+            $alpha = $rand.Next(24, 85)
+            $c = New-Color "FFFFFF" $alpha
+            $b = New-Object System.Drawing.SolidBrush($c)
+            try {
+                $g.FillEllipse($b, $x - ($w / 2), $y - ($h / 2), $w, $h)
+            } finally {
+                $b.Dispose()
             }
         }
 
-        # Lightning arcs tile 2
-        $boltPenA = New-Object System.Drawing.Pen((New-Color "FFF5BC" 230), 2.0)
-        $boltPenB = New-Object System.Drawing.Pen((New-Color "BDEBFF" 170), 1.2)
+        # Tile 0: subtle blue shadow strokes
+        $shadowPen = New-Object System.Drawing.Pen((New-Color "BFD5EA" 120), 1.2)
         try {
-            for ($i = 0; $i -lt 18; $i++) {
-                $x = 128 + $rand.Next(6, 58)
-                $y = $rand.Next(2, 12)
-                for ($s = 0; $s -lt 5; $s++) {
-                    $nx = $x + $rand.Next(-9, 10)
-                    $ny = $y + $rand.Next(7, 13)
-                    $g.DrawLine($boltPenA, $x, $y, $nx, $ny)
-                    $g.DrawLine($boltPenB, $x + 1, $y, $nx + 1, $ny)
-                    $x = $nx
-                    $y = $ny
-                }
+            for ($i = 0; $i -lt 55; $i++) {
+                $sx = $rand.Next(3, 61)
+                $sy = $rand.Next(24, 62)
+                $g.DrawArc($shadowPen, $sx - 6, $sy - 4, 12, 8, 15, 140)
             }
         } finally {
-            $boltPenA.Dispose()
-            $boltPenB.Dispose()
+            $shadowPen.Dispose()
         }
 
-        # Rain streaks + mist points tile 3
-        $rainPen = New-Object System.Drawing.Pen((New-Color "A7D7FF" 180), 1.4)
-        $mistBrush = New-Object System.Drawing.SolidBrush((New-Color "DAEEFF" 110))
+        # Tile 1: dark details (for eyes/mouth/outlines)
+        $inkBrush = New-Object System.Drawing.SolidBrush((New-Color "1F2534" 240))
+        $inkPen = New-Object System.Drawing.Pen((New-Color "1A2231" 220), 2.2)
         try {
-            for ($i = 0; $i -lt 120; $i++) {
-                $x = 192 + $rand.Next(1, 63)
-                $y = $rand.Next(0, 62)
-                $len = $rand.Next(5, 13)
-                $g.DrawLine($rainPen, $x, $y, $x + $rand.Next(-2, 3), $y + $len)
-            }
-            for ($i = 0; $i -lt 110; $i++) {
-                $x = 192 + $rand.Next(1, 63)
-                $y = $rand.Next(1, 63)
-                $r = $rand.Next(1, 4)
-                $g.FillEllipse($mistBrush, $x, $y, $r, $r)
+            $g.FillEllipse($inkBrush, 73, 18, 11, 18)
+            $g.FillEllipse($inkBrush, 108, 18, 11, 18)
+            $g.DrawArc($inkPen, 89, 28, 14, 12, 18, 145)
+            $g.DrawArc($inkPen, 70, 12, 16, 10, 200, 80)
+            $g.DrawArc($inkPen, 106, 12, 16, 10, 260, 80)
+        } finally {
+            $inkBrush.Dispose()
+            $inkPen.Dispose()
+        }
+
+        # Tile 2: sun disk + rays
+        $sunBrush = New-Object System.Drawing.SolidBrush((New-Color "FFE85D" 230))
+        $sunCore = New-Object System.Drawing.SolidBrush((New-Color "FFF6B2" 210))
+        $rayPen = New-Object System.Drawing.Pen((New-Color "FFD343" 230), 3.1)
+        try {
+            $g.FillEllipse($sunBrush, 133, 5, 54, 54)
+            $g.FillEllipse($sunCore, 145, 16, 30, 30)
+            for ($i = 0; $i -lt 12; $i++) {
+                $deg = 30 * $i
+                $rad = $deg * [Math]::PI / 180.0
+                $cx = 160 + [Math]::Cos($rad) * 24
+                $cy = 32 + [Math]::Sin($rad) * 24
+                $ex = 160 + [Math]::Cos($rad) * 32
+                $ey = 32 + [Math]::Sin($rad) * 32
+                $g.DrawLine($rayPen, $cx, $cy, $ex, $ey)
             }
         } finally {
+            $sunBrush.Dispose()
+            $sunCore.Dispose()
+            $rayPen.Dispose()
+        }
+
+        # Tile 3: blush + rain details
+        $blushBrush = New-Object System.Drawing.SolidBrush((New-Color "F6B39E" 220))
+        $rainPen = New-Object System.Drawing.Pen((New-Color "9ED6FF" 190), 1.4)
+        $sparkBrush = New-Object System.Drawing.SolidBrush((New-Color "F4FBFF" 210))
+        try {
+            $g.FillEllipse($blushBrush, 198, 22, 16, 10)
+            $g.FillEllipse($blushBrush, 234, 22, 16, 10)
+            for ($i = 0; $i -lt 85; $i++) {
+                $x = 192 + $rand.Next(2, 62)
+                $y = $rand.Next(0, 60)
+                $len = $rand.Next(4, 11)
+                $g.DrawLine($rainPen, $x, $y, $x + $rand.Next(-1, 2), $y + $len)
+            }
+            for ($i = 0; $i -lt 45; $i++) {
+                $x = 192 + $rand.Next(2, 62)
+                $y = $rand.Next(2, 62)
+                $s = $rand.Next(1, 3)
+                $g.FillEllipse($sparkBrush, $x, $y, $s, $s)
+            }
+        } finally {
+            $blushBrush.Dispose()
             $rainPen.Dispose()
-            $mistBrush.Dispose()
+            $sparkBrush.Dispose()
         }
     } finally {
         Save-CanvasPng -Canvas $canvas -OutPath $outPath
@@ -485,74 +535,99 @@ function Build-Storm-Rig {
     $children = @()
 
     $puffs = @(
-        @{ n = "CloudCore"; x = 0; y = 30; z = 0; sx = 20; sy = 12; sz = 16; tx = 0 },
-        @{ n = "CloudL1"; x = -11; y = 30; z = 4; sx = 14; sy = 10; sz = 12; tx = 0 },
-        @{ n = "CloudR1"; x = 11; y = 30; z = -4; sx = 14; sy = 10; sz = 12; tx = 0 },
-        @{ n = "CloudF"; x = 0; y = 29; z = 10; sx = 16; sy = 9; sz = 10; tx = 64 },
-        @{ n = "CloudB"; x = 0; y = 29; z = -10; sx = 16; sy = 9; sz = 10; tx = 64 },
-        @{ n = "CloudU1"; x = -5; y = 34; z = -2; sx = 10; sy = 7; sz = 8; tx = 64 },
-        @{ n = "CloudU2"; x = 6; y = 34; z = 1; sx = 10; sy = 7; sz = 8; tx = 64 },
-        @{ n = "CloudU3"; x = 0; y = 35; z = -7; sx = 9; sy = 6; sz = 8; tx = 64 }
+        @{ n = "CloudCore"; x = 0; y = 30; z = 0; sx = 20; sy = 12; sz = 14; tx = 0 },
+        @{ n = "CloudTopA"; x = -8; y = 36; z = 0; sx = 11; sy = 7; sz = 9; tx = 0 },
+        @{ n = "CloudTopB"; x = 0; y = 38; z = -2; sx = 12; sy = 8; sz = 9; tx = 0 },
+        @{ n = "CloudTopC"; x = 8; y = 36; z = 1; sx = 11; sy = 7; sz = 9; tx = 0 },
+        @{ n = "CloudLeftA"; x = -14; y = 30; z = 2; sx = 10; sy = 9; sz = 10; tx = 0 },
+        @{ n = "CloudLeftB"; x = -15; y = 25; z = 0; sx = 9; sy = 8; sz = 9; tx = 0 },
+        @{ n = "CloudRightA"; x = 14; y = 30; z = -1; sx = 10; sy = 9; sz = 10; tx = 0 },
+        @{ n = "CloudRightB"; x = 15; y = 25; z = 0; sx = 9; sy = 8; sz = 9; tx = 0 },
+        @{ n = "CloudBottomA"; x = -9; y = 23; z = 3; sx = 11; sy = 8; sz = 9; tx = 0 },
+        @{ n = "CloudBottomB"; x = 0; y = 21; z = 5; sx = 12; sy = 8; sz = 8; tx = 0 },
+        @{ n = "CloudBottomC"; x = 9; y = 23; z = 2; sx = 11; sy = 8; sz = 9; tx = 0 },
+        @{ n = "CloudBackA"; x = -6; y = 30; z = -8; sx = 9; sy = 7; sz = 8; tx = 64 },
+        @{ n = "CloudBackB"; x = 6; y = 30; z = -8; sx = 9; sy = 7; sz = 8; tx = 64 },
+        @{ n = "CloudBackTop"; x = 0; y = 35; z = -7; sx = 10; sy = 6; sz = 8; tx = 64 }
     )
     foreach ($p in $puffs) {
         $children += N $p.n (V $p.x $p.y $p.z) (SBox $p.sx $p.sy $p.sz $p.tx 0)
     }
 
-    $rain = Ring-Quads "Rain_" 14 11 14 5 16 192 0 12.5
+    # Face details (cute cloud front)
+    $children += @(
+        (N "FacePlate" (V 0 29 10) (SBox 16 10 2 0 0)),
+        (N "EyeLeft" (V -4 31 12) (SBox 2 5 2 64 0 "fullbright")),
+        (N "EyeRight" (V 4 31 12) (SBox 2 5 2 64 0 "fullbright")),
+        (N "BrowLeft" (V -4 35 12) (SQuad 4 2 64 0)),
+        (N "BrowRight" (V 4 35 12) (SQuad 4 2 64 0)),
+        (N "SmileMid" (V 0 27 12) (SBox 5 1 2 64 0 "fullbright")),
+        (N "SmileLeft" (V -3 28 12) (SBox 2 1 2 64 0 "fullbright")),
+        (N "SmileRight" (V 3 28 12) (SBox 2 1 2 64 0 "fullbright")),
+        (N "CheekLeft" (V -8 28 12) (SBox 3 2 2 192 0 "fullbright")),
+        (N "CheekRight" (V 8 28 12) (SBox 3 2 2 192 0 "fullbright"))
+    )
+
+    $rain = Ring-Quads "Rain_" 12 12 13 4 16 192 0 8
     $children += (N "RainPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) $rain)
 
-    $mist = Ring-Boxes "Mist_" 16 17 17 4 4 3 64 0
+    $mist = Ring-Boxes "Mist_" 12 16 18 3 3 3 0 0
     $children += (N "MistPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) $mist)
 
-    $boltSlices = @(
-        (N "BoltSlice_A" (V 0 20 9) (SQuad 14 24 128 0)),
-        (N "BoltSlice_B" (V 9 20 0) (SQuad 14 24 128 0) (QY 90)),
-        (N "BoltSlice_C" (V 0 20 -9) (SQuad 14 24 128 0) (QY 180)),
-        (N "BoltSlice_D" (V -9 20 0) (SQuad 14 24 128 0) (QY -90))
+    # Tiny sparkle cross (replaces harsh storm look)
+    $sparkCross = @(
+        (N "SparkA" (V 0 31 13) (SQuad 7 7 192 0)),
+        (N "SparkB" (V 0 31 13) (SQuad 7 7 192 0) (QY 90))
     )
-    $children += (N "BoltPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) $boltSlices)
-    $children += (N "ChargeCore" (V 0 20 0) (SBox 6 8 6 192 0 "fullbright"))
+    $children += (N "SparkPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) $sparkCross)
 
     return (New-Model $children)
 }
 
 function Build-Storm-Core {
     $children = @()
-    $children += (N "StormHeart" (V 0 19 0) (SBox 10 14 10 64 0 "fullbright"))
-    $children += (N "StormHeartInner" (V 0 19 0) (SBox 6 18 6 192 0 "fullbright"))
+    $children += (N "CloudInnerA" (V 0 20 0) (SBox 12 10 10 0 0 "fullbright"))
+    $children += (N "CloudInnerB" (V -6 22 1) (SBox 8 7 7 0 0 "fullbright"))
+    $children += (N "CloudInnerC" (V 6 22 0) (SBox 8 7 7 0 0 "fullbright"))
     $children += @(
-        (N "CoreCloudA" (V -7 23 0) (SBox 8 6 7 0 0)),
-        (N "CoreCloudB" (V 7 23 0) (SBox 8 6 7 0 0)),
-        (N "CoreCloudC" (V 0 23 7) (SBox 7 6 8 0 0)),
-        (N "CoreCloudD" (V 0 23 -7) (SBox 7 6 8 0 0))
+        (N "CoreCheekL" (V -6 19 7) (SBox 3 2 2 192 0 "fullbright")),
+        (N "CoreCheekR" (V 6 19 7) (SBox 3 2 2 192 0 "fullbright")),
+        (N "CoreEyeL" (V -3 21 7) (SBox 2 4 2 64 0 "fullbright")),
+        (N "CoreEyeR" (V 3 21 7) (SBox 2 4 2 64 0 "fullbright"))
     )
-    $arcs = Ring-Quads "Arc_" 6 11 20 14 12 128 0 30
-    $children += (N "ArcPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) $arcs)
+    $halo = Ring-Quads "Halo_" 8 10 20 8 8 192 0 22.5
+    $children += (N "HaloPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) $halo)
     return (New-Model $children)
 }
 
 function Build-Storm-Bolt {
     $children = @()
+    # Keep this asset as a soft "raindrop sparkle" companion.
     $children += @(
-        (N "Seg_0" (V -2 30 0) (SBox 4 10 4 128 0 "fullbright")),
-        (N "Seg_1" (V 2 21 1) (SBox 4 10 4 128 0 "fullbright")),
-        (N "Seg_2" (V -1 12 -1) (SBox 4 10 4 128 0 "fullbright")),
-        (N "Seg_3" (V 2 3 1) (SBox 4 10 4 128 0 "fullbright")),
-        (N "Seg_4" (V -2 -6 -1) (SBox 4 10 4 128 0 "fullbright"))
+        (N "DropA" (V 0 30 0) (SBox 3 6 3 192 0 "fullbright")),
+        (N "DropB" (V 0 23 0) (SBox 2 6 2 192 0 "fullbright")),
+        (N "DropC" (V 0 16 0) (SBox 2 5 2 192 0 "fullbright"))
     )
     $children += @(
-        (N "FlashA" (V 0 16 0) (SQuad 20 34 192 0)),
-        (N "FlashB" (V 0 16 0) (SQuad 20 34 192 0) (QY 90))
+        (N "TwinkleA" (V 0 26 0) (SQuad 8 8 192 0)),
+        (N "TwinkleB" (V 0 26 0) (SQuad 8 8 192 0) (QY 90))
     )
     return (New-Model $children)
 }
 
 function Build-Storm-Ring {
     $children = @()
-    $runes = Ring-Quads "Rune_" 18 20 19 7 9 128 0
-    $glyphs = Ring-Boxes "Glyph_" 14 14 19 2 2 2 192 0
-    $children += (N "RingPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) ($runes + $glyphs))
-    $children += (N "RingCore" (V 0 19 0) (SBox 8 6 8 64 0 "fullbright"))
+    $sunChildren = @(
+        (N "SunDisc" (V 0 0 -14) (SQuad 44 44 128 0)),
+        (N "SunCore" (V 0 0 -13) (SQuad 26 26 128 0))
+    )
+    $sunRays = Ring-Quads-Vertical "SunRay_" 12 27 -14 8 14 128 0
+    $children += (N "SunPivot" (V 0 35 0) (SNone) (Q 0 0 0 1) ($sunChildren + $sunRays))
+
+    $sparkles = Ring-Boxes "OrbitSpark_" 10 18 28 2 2 2 192 0
+    $children += (N "SparkOrbit" (V 0 0 0) (SNone) (Q 0 0 0 1) $sparkles)
+
+    $children += (N "CloudBackSoft" (V 0 31 -8) (SBox 16 8 8 0 0 "fullbright"))
     return (New-Model $children)
 }
 
@@ -624,12 +699,17 @@ function Build-FireIce-Core-Idle {
 }
 
 function Build-Storm-Ring-Idle {
-    return Anim 72 ([ordered]@{
-        RingPivot = (Tr @() (YawCycle 72))
-        RingCore = (Tr @(
-            (KV 0 0 19 0),
-            (KV 36 0 20.2 0),
-            (KV 72 0 19 0)
+    return Anim 96 ([ordered]@{
+        SunPivot = (Tr @(
+            (KV 0 0 35 0),
+            (KV 48 0 36.2 0),
+            (KV 96 0 35 0)
+        ) (YawCycle 96))
+        SparkOrbit = (Tr @() (YawCycle 64))
+        CloudBackSoft = (Tr @(
+            (KV 0 0 31 -8),
+            (KV 48 0 31.8 -8),
+            (KV 96 0 31 -8)
         ) @())
     })
 }

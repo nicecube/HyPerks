@@ -1572,7 +1572,7 @@ public class HyPerksCoreService {
             switch (category) {
                 case AURAS -> renderAura(effectId, cosmetic, position, yawDegrees, store, frame);
                 case AURAS_PREMIUM -> renderPremiumAura(effectId, cosmetic, position, store, frame);
-                case TRAILS -> renderTrail(effectId, cosmetic, position, store, frame);
+                case TRAILS -> renderTrail(effectId, cosmetic, position, store, tracker, frame);
                 case FOOTPRINTS -> renderFootprints(effectId, position, yawDegrees, store, tracker, nowMs);
                 case FLOATING_BADGES -> renderFloatingBadge(effectId, cosmetic, position, store, frame, slot, totalSlots);
                 case TROPHY_BADGES -> renderTrophyBadge(effectId, cosmetic, position, store, frame, slot, totalSlots);
@@ -1977,6 +1977,45 @@ public class HyPerksCoreService {
         CosmeticDefinition cosmetic,
         Vector3d position,
         Store<EntityStore> store,
+        RenderTracker tracker,
+        long frame
+    ) {
+        if (tracker != null && tracker.lastTrailPosition != null) {
+            double deltaSquared = tracker.lastTrailPosition.distanceSquaredTo(position);
+            if (deltaSquared < 0.0004D) {
+                return;
+            }
+        }
+
+        int steps = 2;
+        Vector3d previous = tracker == null ? null : tracker.lastTrailPosition;
+        if (previous != null) {
+            double distance = Math.sqrt(previous.distanceSquaredTo(position));
+            steps = Math.max(2, Math.min(5, (int) Math.ceil(distance / 0.14D)));
+        }
+
+        for (int step = 1; step <= steps; step++) {
+            double t = step / (double) steps;
+            Vector3d sample = previous == null
+                ? new Vector3d(position)
+                : new Vector3d(
+                    lerp(previous.x, position.x, t),
+                    lerp(previous.y, position.y, t),
+                    lerp(previous.z, position.z, t)
+                );
+            renderTrailSample(effectId, cosmetic, sample, store, frame + step);
+        }
+
+        if (tracker != null) {
+            tracker.lastTrailPosition = new Vector3d(position);
+        }
+    }
+
+    private void renderTrailSample(
+        String effectId,
+        CosmeticDefinition cosmetic,
+        Vector3d position,
+        Store<EntityStore> store,
         long frame
     ) {
         String style = cosmetic.getRenderStyle();
@@ -1984,15 +2023,13 @@ public class HyPerksCoreService {
         double baseY = position.y + 0.24D;
 
         if ("comet".equals(style)) {
-            if ((frame % 2L) != 0L) {
-                return;
-            }
             double phase = frame * 0.12D;
             double headX = position.x + Math.cos(phase) * 0.16D;
             double headZ = position.z + Math.sin(phase) * 0.16D;
             spawnParticle(effectId, headX, baseY + 0.04D, headZ, store);
             spawnParticle(effectId, position.x + Math.cos(phase + 0.8D) * 0.13D, baseY + 0.03D, position.z + Math.sin(phase + 0.8D) * 0.13D, store);
-            for (int tail = 1; tail <= 3; tail++) {
+            spawnParticle(effectId, position.x + Math.cos(phase + 1.4D) * 0.11D, baseY + 0.02D, position.z + Math.sin(phase + 1.4D) * 0.11D, store);
+            for (int tail = 1; tail <= 4; tail++) {
                 double trailOffset = 0.11D * tail;
                 spawnParticle(
                     effectId,
@@ -2006,21 +2043,17 @@ public class HyPerksCoreService {
         }
 
         if ("spark".equals(style)) {
-            if ((frame % 2L) != 0L) {
-                return;
-            }
             double sway = Math.sin(frame * 0.14D) * 0.12D;
             spawnParticle(effectId, position.x + sway, baseY + 0.03D, position.z, store);
             spawnParticle(effectId, position.x - sway, baseY + 0.04D, position.z, store);
             spawnParticle(effectId, position.x, baseY + 0.05D, position.z + sway, store);
             spawnParticle(effectId, position.x, baseY + 0.03D, position.z - sway, store);
+            spawnParticle(effectId, position.x + (sway * 0.6D), baseY + 0.07D, position.z + (sway * 0.4D), store);
+            spawnParticle(effectId, position.x - (sway * 0.6D), baseY + 0.02D, position.z - (sway * 0.4D), store);
             return;
         }
 
         if ("spiral".equals(style)) {
-            if ((frame % 2L) != 0L) {
-                return;
-            }
             double phase = frame * 0.19D;
             double radius = 0.20D;
             spawnParticle(effectId, position.x + Math.cos(phase) * radius, baseY, position.z + Math.sin(phase) * radius, store);
@@ -2032,13 +2065,12 @@ public class HyPerksCoreService {
                 store
             );
             spawnParticle(effectId, position.x + Math.cos(phase + (Math.PI / 2.0D)) * (radius * 0.75D), baseY + 0.03D, position.z + Math.sin(phase + (Math.PI / 2.0D)) * (radius * 0.75D), store);
+            spawnParticle(effectId, position.x + Math.cos(phase + (Math.PI / 3.0D)) * (radius * 0.82D), baseY + 0.06D, position.z + Math.sin(phase + (Math.PI / 3.0D)) * (radius * 0.82D), store);
+            spawnParticle(effectId, position.x + Math.cos(phase + (Math.PI * 1.3D)) * (radius * 0.90D), baseY + 0.01D, position.z + Math.sin(phase + (Math.PI * 1.3D)) * (radius * 0.90D), store);
             return;
         }
 
         if ("supreme".equals(style)) {
-            if ((frame % 1L) != 0L) {
-                return;
-            }
             double phase = frame * 0.21D;
             double radius = 0.24D;
             for (int i = 0; i < 4; i++) {
@@ -2052,15 +2084,14 @@ public class HyPerksCoreService {
                 );
             }
             spawnParticle(effectId, position.x, baseY + 0.08D, position.z, store);
+            spawnParticle(effectId, position.x + Math.cos(phase + 1.0D) * 0.16D, baseY + 0.12D, position.z + Math.sin(phase + 1.0D) * 0.16D, store);
+            spawnParticle(effectId, position.x + Math.cos(phase + 2.7D) * 0.16D, baseY + 0.10D, position.z + Math.sin(phase + 2.7D) * 0.16D, store);
             return;
         }
 
         if ("laser".equals(style)) {
-            if ((frame % 2L) != 0L) {
-                return;
-            }
             double phase = frame * 0.10D;
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 7; i++) {
                 double offset = 0.03D + (i * 0.014D);
                 spawnParticle(
                     effectId,
@@ -2075,9 +2106,6 @@ public class HyPerksCoreService {
         }
 
         if ("icon".equals(style)) {
-            if ((frame % 2L) != 0L) {
-                return;
-            }
             double phase = frame * 0.11D;
 
             if ("star_trail".equals(cosmeticId) || "money_trail".equals(cosmeticId) || "death_trail".equals(cosmeticId)) {
@@ -2103,6 +2131,8 @@ public class HyPerksCoreService {
                     position.z + Math.sin(phase + 4.0D) * 0.18D,
                     store
                 );
+                spawnParticle(effectId, position.x + Math.cos(phase + 5.0D) * 0.14D, baseY + 0.04D, position.z + Math.sin(phase + 5.0D) * 0.14D, store);
+                spawnParticle(effectId, position.x + Math.cos(phase + 1.2D) * 0.12D, baseY + 0.09D, position.z + Math.sin(phase + 1.2D) * 0.12D, store);
                 return;
             }
 
@@ -2110,11 +2140,14 @@ public class HyPerksCoreService {
             spawnParticle(effectId, position.x + Math.cos(phase) * 0.14D, baseY + 0.02D, position.z + Math.sin(phase) * 0.14D, store);
             spawnParticle(effectId, position.x + Math.cos(phase + 2.2D) * 0.18D, baseY + 0.06D, position.z + Math.sin(phase + 2.2D) * 0.18D, store);
             spawnParticle(effectId, position.x - Math.cos(phase) * 0.12D, baseY + 0.04D, position.z - Math.sin(phase) * 0.12D, store);
+            spawnParticle(effectId, position.x + Math.cos(phase + 4.1D) * 0.10D, baseY + 0.03D, position.z + Math.sin(phase + 4.1D) * 0.10D, store);
             return;
         }
 
         double phase = frame * 0.14D;
         spawnParticle(effectId, position.x + Math.cos(phase) * 0.1D, baseY, position.z + Math.sin(phase) * 0.1D, store);
+        spawnParticle(effectId, position.x + Math.cos(phase + Math.PI) * 0.08D, baseY + 0.02D, position.z + Math.sin(phase + Math.PI) * 0.08D, store);
+        spawnParticle(effectId, position.x, baseY + 0.04D, position.z, store);
     }
 
     private void renderFootprints(
@@ -2157,17 +2190,11 @@ public class HyPerksCoreService {
         int slot,
         int totalSlots
     ) {
-        if ((frame % 4L) != 0L) {
-            return;
-        }
-
         double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
-        double phase = (frame * 0.040D) + baseAngle;
-        double radius = 0.38D + (Math.max(0, Math.min(4, totalSlots - 1)) * 0.04D);
-        double y = position.y + 2.18D;
-        double x = position.x + Math.cos(phase) * radius;
-        double z = position.z + Math.sin(phase) * radius;
-        spawnParticle(effectId, x, y, z, store);
+        double phase = (frame * 0.020D) + baseAngle;
+        double radius = 0.40D + (Math.max(0, Math.min(4, totalSlots - 1)) * 0.05D);
+        double y = position.y + 2.18D + (Math.sin((frame * 0.02D) + slot) * 0.01D);
+        spawnBadgeCarousel(effectId, position, store, phase, radius, y, 3, 0.20D);
     }
 
     private void renderTrophyBadge(
@@ -2179,16 +2206,41 @@ public class HyPerksCoreService {
         int slot,
         int totalSlots
     ) {
-        if ((frame % 4L) != 0L) {
-            return;
-        }
-
         double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
-        double phase = (frame * 0.037D) + baseAngle;
-        double baseRadius = "crown".equals(cosmetic.getRenderStyle()) ? 0.40D : 0.38D;
-        double radius = baseRadius + (Math.max(0, Math.min(4, totalSlots - 1)) * 0.04D);
-        double y = position.y + 2.28D;
-        spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
+        double phase = (frame * 0.018D) + baseAngle;
+        double baseRadius = "crown".equals(cosmetic.getRenderStyle()) ? 0.44D : 0.40D;
+        double radius = baseRadius + (Math.max(0, Math.min(4, totalSlots - 1)) * 0.05D);
+        double y = position.y + 2.30D + (Math.cos((frame * 0.018D) + slot) * 0.01D);
+        spawnBadgeCarousel(effectId, position, store, phase, radius, y, 4, 0.18D);
+        spawnParticle(effectId, position.x, y + 0.04D, position.z, store);
+    }
+
+    private void spawnBadgeCarousel(
+        String effectId,
+        Vector3d position,
+        Store<EntityStore> store,
+        double phase,
+        double radius,
+        double y,
+        int samples,
+        double trailPhaseStep
+    ) {
+        int count = Math.max(1, samples);
+        for (int i = 0; i < count; i++) {
+            double samplePhase = phase - (trailPhaseStep * i);
+            double sampleRadius = radius - (i * 0.015D);
+            spawnParticle(
+                effectId,
+                position.x + Math.cos(samplePhase) * sampleRadius,
+                y - (i * 0.005D),
+                position.z + Math.sin(samplePhase) * sampleRadius,
+                store
+            );
+        }
+    }
+
+    private double lerp(double start, double end, double t) {
+        return start + ((end - start) * t);
     }
 
     private void spawnRotatedParticle(
@@ -2781,6 +2833,7 @@ public class HyPerksCoreService {
 
     private static final class RenderTracker {
         private Vector3d lastFootstepPosition;
+        private Vector3d lastTrailPosition;
         private long lastFootstepAtMs;
         private long lastSeenMs;
         private boolean nextFootRight = true;

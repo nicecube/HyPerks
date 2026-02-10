@@ -330,11 +330,12 @@ public class ModelVfxRigService {
                     }
                 }
                 case "storm_clouds" -> {
-                    expanded.add(part(desired, "core", pickPartModel(base, "_Core")));
-                    expanded.add(part(desired, "bolt", pickPartModel(base, "_Bolt")));
+                    expanded.add(part(desired, "cloud_a", base));
+                    expanded.add(part(desired, "cloud_b", pickPartModel(base, "_Core")));
                     if (qualityTier == QualityTier.ULTRA) {
-                        expanded.add(part(desired, "ring", pickPartModel(base, "_Ring")));
+                        expanded.add(part(desired, "cloud_c", base));
                     }
+                    expanded.add(part(desired, "sun_cloud", pickPartModel(base, "_Ring")));
                 }
                 case "wingwang_sigil" -> {
                     expanded.add(part(desired, "inner", pickPartModel(base, "_Inner")));
@@ -626,16 +627,29 @@ public class ModelVfxRigService {
                 }
             }
             case "storm_clouds" -> {
-                localY = 2.30D + (Math.sin(frame * 0.05D) * 0.05D);
-                localZ = -0.06D;
-                if ("ring".equals(part)) {
-                    double phase = frame * 0.14D;
-                    localX = Math.cos(phase) * 0.30D;
-                    localZ = -0.06D + (Math.sin(phase) * 0.30D);
-                } else if ("bolt".equals(part)) {
-                    localY = 2.06D + (Math.sin(frame * 0.18D) * 0.10D);
-                    localX = Math.sin(frame * 0.11D) * 0.10D;
-                    localZ = -0.10D;
+                localY = 2.26D + (Math.sin(frame * 0.03D) * 0.03D);
+                localZ = -0.20D;
+
+                if ("cloud_a".equals(part) || "core".equals(part)) {
+                    double phase = frame * 0.010D;
+                    localX = Math.cos(phase) * 0.52D;
+                    localZ = -0.20D + (Math.sin(phase) * 0.30D);
+                    localY = 2.24D + (Math.sin(frame * 0.035D) * 0.04D);
+                } else if ("cloud_b".equals(part) || "ring".equals(part)) {
+                    double phase = (frame * 0.009D) + 2.094D;
+                    localX = Math.cos(phase) * 0.46D;
+                    localZ = -0.14D + (Math.sin(phase) * 0.26D);
+                    localY = 2.30D + (Math.sin(frame * 0.030D + 0.9D) * 0.04D);
+                } else if ("cloud_c".equals(part) || "bolt".equals(part)) {
+                    double phase = (frame * 0.008D) + 4.188D;
+                    localX = Math.cos(phase) * 0.58D;
+                    localZ = -0.26D + (Math.sin(phase) * 0.32D);
+                    localY = 2.20D + (Math.sin(frame * 0.028D + 1.8D) * 0.04D);
+                } else if ("sun_cloud".equals(part)) {
+                    double phase = frame * 0.006D;
+                    localX = Math.cos(phase) * 0.18D;
+                    localZ = -0.74D + (Math.sin(phase) * 0.12D);
+                    localY = 2.44D + (Math.sin(frame * 0.026D) * 0.03D);
                 }
             }
             case "wingwang_sigil" -> {
@@ -690,7 +704,19 @@ public class ModelVfxRigService {
                     base.addYaw((float) (Math.sin(frame * 0.04D) * 12.0D));
                 }
             }
-            case "storm_clouds" -> base.addYaw("bolt".equals(part) ? (float) ((frame % 360L) * 4.4D) : (float) ((frame % 360L) * 1.5D));
+            case "storm_clouds" -> {
+                if ("sun_cloud".equals(part)) {
+                    base.addYaw(180.0F + (float) (Math.sin(frame * 0.01D) * 8.0D));
+                } else if ("cloud_a".equals(part) || "core".equals(part)) {
+                    base.addYaw((float) ((frame % 360L) * 0.45D));
+                } else if ("cloud_b".equals(part) || "ring".equals(part)) {
+                    base.addYaw(120.0F - (float) ((frame % 360L) * 0.36D));
+                } else if ("cloud_c".equals(part) || "bolt".equals(part)) {
+                    base.addYaw(240.0F + (float) ((frame % 360L) * 0.30D));
+                } else {
+                    base.addYaw((float) ((frame % 360L) * 0.40D));
+                }
+            }
             case "wingwang_sigil" -> base.addYaw("mid".equals(part) ? 180.0F - (float) ((frame % 360L) * 1.8D) : 180.0F + (float) ((frame % 360L) * 2.0D));
             case "fireworks_show" -> base.addYaw("launcher".equals(part) ? (float) (Math.sin(frame * 0.05D) * 15.0D) : (float) ((frame % 360L) * 3.0D));
             default -> {
