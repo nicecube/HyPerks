@@ -1,4 +1,4 @@
-﻿"FileTemplate","ModelRef","TextureRef","AnimationRef"
+"FileTemplate","ModelRef","TextureRef","AnimationRef"
 "FireIceCone_Rig.json.template.json","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Rig.blockymodel","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Atlas.png","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Rig_Idle.blockyanim"
 "FireIceCone_Rig_Core.json.template.json","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Rig_Core.blockymodel","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Atlas.png","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Rig_Core_Idle.blockyanim"
 "FireIceCone_Rig_HelixFire.json.template.json","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Rig_HelixFire.blockymodel","Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Atlas.png",""

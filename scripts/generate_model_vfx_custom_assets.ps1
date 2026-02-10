@@ -5,7 +5,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 
 function ResolveP([string]$p){ if([IO.Path]::IsPathRooted($p)){return $p}; [IO.Path]::GetFullPath((Join-Path (Get-Location).Path $p)) }
-function J([string]$p,$o){ ($o|ConvertTo-Json -Depth 30) | Set-Content -Encoding UTF8 $p }
+$script:Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+function J([string]$p,$o){ [System.IO.File]::WriteAllText($p, ($o|ConvertTo-Json -Depth 30), $script:Utf8NoBom) }
 function V([double]$x,[double]$y,[double]$z){ [ordered]@{x=$x;y=$y;z=$z} }
 function Q([double]$x,[double]$y,[double]$z,[double]$w){ [ordered]@{x=$x;y=$y;z=$z;w=$w} }
 function QY([double]$deg){ $r=$deg*[Math]::PI/180; $s=[Math]::Sin($r/2); $c=[Math]::Cos($r/2); Q 0 $s 0 $c }

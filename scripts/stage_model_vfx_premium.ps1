@@ -8,6 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$script:Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Resolve-AbsolutePath {
     param([string]$PathValue)
@@ -33,6 +34,15 @@ function Resolve-AssetRefPath {
     }
 
     return Join-Path $AssetsRoot ($normalized.Replace('/', '\'))
+}
+
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string]$PathValue,
+        [Parameter(Mandatory = $true)][string]$Content
+    )
+
+    [System.IO.File]::WriteAllText($PathValue, $Content, $script:Utf8NoBom)
 }
 
 function Collect-AnimationRefs {
@@ -155,7 +165,7 @@ foreach ($templateFile in $templateFiles) {
         }
 
         if (-not $DryRun) {
-            ($runtimeJson | ConvertTo-Json -Depth 12) | Set-Content -Encoding UTF8 -Path $runtimePath
+            Write-Utf8NoBom -PathValue $runtimePath -Content ($runtimeJson | ConvertTo-Json -Depth 12)
         }
 
         $updatedRuntime++
@@ -179,13 +189,14 @@ foreach ($directory in $requiredByDirectory.Keys | Sort-Object) {
     ) + ($requiredByDirectory[$directory] | Sort-Object | ForEach-Object { "- $_" })
 
     if (-not $DryRun) {
-        $lines | Set-Content -Encoding UTF8 -Path $readmePath
+        Write-Utf8NoBom -PathValue $readmePath -Content ($lines -join [Environment]::NewLine)
     }
 }
 
 $summaryPath = Join-Path $templatesDir "_stage_summary.csv"
 if (-not $DryRun) {
-    $summary | Export-Csv -Path $summaryPath -NoTypeInformation -Encoding UTF8
+    $summaryText = $summary | ConvertTo-Csv -NoTypeInformation
+    Write-Utf8NoBom -PathValue $summaryPath -Content ($summaryText -join [Environment]::NewLine)
 }
 
 Write-Host "Premium staging completed."

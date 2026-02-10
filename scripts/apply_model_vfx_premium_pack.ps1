@@ -8,6 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$script:Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Resolve-AbsolutePath {
     param([string]$PathValue)
@@ -29,7 +30,7 @@ function Set-JsonFile {
         [string]$PathValue,
         [object]$JsonObject
     )
-    ($JsonObject | ConvertTo-Json -Depth 12) | Set-Content -Encoding UTF8 -Path $PathValue
+    [System.IO.File]::WriteAllText($PathValue, ($JsonObject | ConvertTo-Json -Depth 12), $script:Utf8NoBom)
 }
 
 function Ensure-AnimationSet {

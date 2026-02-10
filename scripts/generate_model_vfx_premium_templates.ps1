@@ -4,6 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$script:Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Resolve-AbsolutePath {
     param([string]$PathValue)
@@ -16,6 +17,14 @@ function Resolve-AbsolutePath {
 function Read-JsonFile {
     param([string]$PathValue)
     return Get-Content -Raw -Path $PathValue | ConvertFrom-Json
+}
+
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string]$PathValue,
+        [Parameter(Mandatory = $true)][string]$Content
+    )
+    [System.IO.File]::WriteAllText($PathValue, $Content, $script:Utf8NoBom)
 }
 
 $projectRoot = Resolve-AbsolutePath -PathValue $Root
@@ -88,7 +97,7 @@ foreach ($entry in $profileByFile.GetEnumerator() | Sort-Object Name) {
     }
 
     $outputPath = Join-Path $outputDir "$fileName.template.json"
-    ($template | ConvertTo-Json -Depth 10) | Set-Content -Encoding UTF8 -Path $outputPath
+    Write-Utf8NoBom -PathValue $outputPath -Content ($template | ConvertTo-Json -Depth 10)
 
     $manifest += [pscustomobject]@{
         FileTemplate = [System.IO.Path]::GetFileName($outputPath)
@@ -99,7 +108,8 @@ foreach ($entry in $profileByFile.GetEnumerator() | Sort-Object Name) {
 }
 
 $manifestPath = Join-Path $outputDir "_premium_manifest.csv"
-$manifest | Export-Csv -Path $manifestPath -NoTypeInformation -Encoding UTF8
+$manifestCsv = $manifest | ConvertTo-Csv -NoTypeInformation
+Write-Utf8NoBom -PathValue $manifestPath -Content ($manifestCsv -join [Environment]::NewLine)
 
 Write-Host "Generated premium templates in: $outputDir"
 Write-Host "Manifest: $manifestPath"
