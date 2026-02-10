@@ -16,7 +16,6 @@ $C.@Container {
   }
 
   #TopBar {
-    Anchor: (Top: 8, Bottom: 8);
     LayoutMode: Left;
 
     Label {
@@ -41,7 +40,6 @@ $C.@Container {
     Label #ActiveCount {
       Anchor: (Width: 180);
       Style: (
-        Alignment: Right,
         FontSize: 12,
         TextColor: #95b6df
       );
@@ -49,11 +47,11 @@ $C.@Container {
   }
 
   #Content {
+    Anchor: (Top: 8);
     LayoutMode: Left;
 
     Group #TabList {
       Anchor: (Width: 240);
-      Padding: (Right: 10);
       LayoutMode: TopScrolling;
       ScrollbarStyle: $C.@DefaultScrollbarStyle;
     }

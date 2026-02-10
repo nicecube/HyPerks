@@ -3,12 +3,11 @@ Button #Button {
   Anchor: (Bottom: 5);
   LayoutMode: Top;
   Style: (
-    Background: #0b1525(0.58),
     Hovered: (
-      Background: #163252(0.72)
+      Background: #000000(0.2)
     ),
     Pressed: (
-      Background: #1f4166(0.82)
+      Background: #000000(0.35)
     )
   );
 
