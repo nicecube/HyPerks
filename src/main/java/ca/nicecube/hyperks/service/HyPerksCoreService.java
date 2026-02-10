@@ -1317,14 +1317,14 @@ public class HyPerksCoreService {
         int slot,
         int totalSlots
     ) {
-        if ((frame % 14L) != 0L) {
+        if ((frame % 4L) != 0L) {
             return;
         }
 
         double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
-        double phase = (frame * 0.006D) + baseAngle;
-        double radius = 0.28D + (Math.min(4, totalSlots) * 0.025D);
-        double y = position.y + 2.12D;
+        double phase = (frame * 0.040D) + baseAngle;
+        double radius = 0.38D + (Math.max(0, Math.min(4, totalSlots - 1)) * 0.04D);
+        double y = position.y + 2.18D;
         double x = position.x + Math.cos(phase) * radius;
         double z = position.z + Math.sin(phase) * radius;
         spawnParticle(effectId, x, y, z, store);
@@ -1339,14 +1339,15 @@ public class HyPerksCoreService {
         int slot,
         int totalSlots
     ) {
-        if ((frame % 14L) != 0L) {
+        if ((frame % 4L) != 0L) {
             return;
         }
 
         double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
-        double phase = (frame * 0.005D) + baseAngle;
-        double radius = "crown".equals(cosmetic.getRenderStyle()) ? 0.30D : 0.28D;
-        double y = position.y + 2.24D;
+        double phase = (frame * 0.037D) + baseAngle;
+        double baseRadius = "crown".equals(cosmetic.getRenderStyle()) ? 0.40D : 0.38D;
+        double radius = baseRadius + (Math.max(0, Math.min(4, totalSlots - 1)) * 0.04D);
+        double y = position.y + 2.28D;
         spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
     }
 
