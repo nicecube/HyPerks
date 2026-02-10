@@ -617,17 +617,16 @@ function Build-Storm-Bolt {
 
 function Build-Storm-Ring {
     $children = @()
-    $sunChildren = @(
-        (N "SunDisc" (V 0 0 -14) (SQuad 44 44 128 0)),
-        (N "SunCore" (V 0 0 -13) (SQuad 26 26 128 0))
-    )
-    $sunRays = Ring-Quads-Vertical "SunRay_" 12 27 -14 8 14 128 0
-    $children += (N "SunPivot" (V 0 35 0) (SNone) (Q 0 0 0 1) ($sunChildren + $sunRays))
+    $children += (N "CloudBackSoft" (V 0 31 -8) (SBox 18 9 10 0 0 "fullbright"))
+    $children += (N "SunOrb" (V 0 35 -12) (SBox 18 18 6 128 0 "fullbright"))
+    $children += (N "SunCore" (V 0 35 -11) (SBox 10 10 4 128 0 "fullbright"))
 
-    $sparkles = Ring-Boxes "OrbitSpark_" 10 18 28 2 2 2 192 0
+    $sunRays = Ring-Boxes "SunRay_" 10 14 35 3 8 3 128 0
+    $children += (N "SunRayPivot" (V 0 0 0) (SNone) (Q 0 0 0 1) $sunRays)
+
+    $sparkles = Ring-Boxes "OrbitSpark_" 8 17 29 2 2 2 192 0
     $children += (N "SparkOrbit" (V 0 0 0) (SNone) (Q 0 0 0 1) $sparkles)
 
-    $children += (N "CloudBackSoft" (V 0 31 -8) (SBox 16 8 8 0 0 "fullbright"))
     return (New-Model $children)
 }
 
@@ -700,11 +699,17 @@ function Build-FireIce-Core-Idle {
 
 function Build-Storm-Ring-Idle {
     return Anim 96 ([ordered]@{
-        SunPivot = (Tr @(
-            (KV 0 0 35 0),
-            (KV 48 0 36.2 0),
-            (KV 96 0 35 0)
+        SunOrb = (Tr @(
+            (KV 0 0 35 -12),
+            (KV 48 0 36.0 -12),
+            (KV 96 0 35 -12)
         ) (YawCycle 96))
+        SunCore = (Tr @(
+            (KV 0 0 35 -11),
+            (KV 48 0 36.0 -11),
+            (KV 96 0 35 -11)
+        ) @())
+        SunRayPivot = (Tr @() (YawCycle 80))
         SparkOrbit = (Tr @() (YawCycle 64))
         CloudBackSoft = (Tr @(
             (KV 0 0 31 -8),
