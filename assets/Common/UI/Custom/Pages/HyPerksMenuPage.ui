@@ -15,56 +15,71 @@ $C.@Container {
     }
   }
 
-  #TopBar {
-    LayoutMode: Left;
-
-    Label {
-      Text: "ACTIVE";
-      Anchor: (Width: 70);
-      Style: (
-        RenderUppercase: true,
-        FontSize: 10,
-        TextColor: #7a9cc6
-      );
-    }
-
-    Label #ActiveEffect {
-      FlexWeight: 1;
-      Style: (
-        RenderBold: true,
-        FontSize: 14,
-        TextColor: #ffffff
-      );
-    }
-
-    Label #ActiveCount {
-      Anchor: (Width: 180);
-      Style: (
-        FontSize: 12,
-        TextColor: #95b6df
-      );
-    }
-  }
-
   #Content {
-    Anchor: (Top: 8);
-    LayoutMode: Left;
+    LayoutMode: Top;
 
-    Group #TabList {
-      Anchor: (Width: 240);
-      LayoutMode: TopScrolling;
-      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Group #TopBar {
+      Anchor: (Height: 26);
+      LayoutMode: Left;
+
+      Label {
+        Text: "ACTIVE";
+        Anchor: (Width: 70);
+        Style: (
+          RenderUppercase: true,
+          FontSize: 10,
+          TextColor: #7a9cc6
+        );
+      }
+
+      Label #ActiveEffect {
+        FlexWeight: 1;
+        Style: (
+          RenderBold: true,
+          FontSize: 14,
+          TextColor: #ffffff
+        );
+      }
+
+      Label #ActiveCount {
+        Anchor: (Width: 180);
+        Style: (
+          FontSize: 12,
+          TextColor: #95b6df,
+          HorizontalAlignment: End
+        );
+      }
     }
 
-    Group #CosmeticList {
+    Group {
+      Anchor: (Height: 8);
+    }
+
+    Group {
       FlexWeight: 1;
-      LayoutMode: TopScrolling;
-      ScrollbarStyle: $C.@DefaultScrollbarStyle;
-    }
-  }
+      LayoutMode: Left;
 
-  #Footer {
-    Anchor: (Top: 8);
+      Group #TabList {
+        Anchor: (Width: 240);
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+      }
+
+      Group {
+        Anchor: (Width: 10);
+      }
+
+      Group #CosmeticList {
+        FlexWeight: 1;
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+      }
+    }
+
+    Group {
+      Anchor: (Height: 8);
+    }
+
     Label #HintLine {
       Text: "";
       Style: (
