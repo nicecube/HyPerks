@@ -74,8 +74,8 @@ foreach ($entry in $profileByFile.GetEnumerator() | Sort-Object Name) {
     $idleAnimName = "$baseName`_Idle.blockyanim"
 
     $template = [ordered]@{
-        Model      = "Server/Models/HyPerksVFX/Premium/$profile/$modelName"
-        Texture    = "Server/Models/HyPerksVFX/Premium/$profile/$textureName"
+        Model      = "VFX/HyPerks/$profile/$modelName"
+        Texture    = "VFX/HyPerks/$profile/$textureName"
         EyeHeight  = $json.EyeHeight
         HitBox     = $json.HitBox
         MinScale   = $json.MinScale
@@ -87,7 +87,7 @@ foreach ($entry in $profileByFile.GetEnumerator() | Sort-Object Name) {
             Idle = [ordered]@{
                 Animations = @(
                     [ordered]@{
-                        Animation        = "Server/Models/HyPerksVFX/Premium/$profile/$idleAnimName"
+                        Animation        = "VFX/HyPerks/$profile/$idleAnimName"
                         BlendingDuration = 0.08
                         Speed            = 1.00
                     }

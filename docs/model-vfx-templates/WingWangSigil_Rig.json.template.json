@@ -1,6 +1,6 @@
 {
-    "Model":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Rig.blockymodel",
-    "Texture":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Atlas.png",
+    "Model":  "VFX/HyPerks/WingWangSigil/WingWangSigil_Rig.blockymodel",
+    "Texture":  "VFX/HyPerks/WingWangSigil/WingWangSigil_Atlas.png",
     "EyeHeight":  1.4,
     "HitBox":  {
                    "Max":  {
@@ -20,7 +20,7 @@
                           "Idle":  {
                                        "Animations":  [
                                                           {
-                                                              "Animation":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Rig_Idle.blockyanim",
+                                                              "Animation":  "VFX/HyPerks/WingWangSigil/WingWangSigil_Rig_Idle.blockyanim",
                                                               "BlendingDuration":  0.08,
                                                               "Speed":  1
                                                           }

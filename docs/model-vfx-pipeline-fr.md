@@ -30,8 +30,8 @@ Si une variante n'existe pas, le runtime fallback sur le JSON base.
 
 1. Modeler les meshes dans ton outil 3D (Blender, etc.).
 2. Exporter via ton pipeline Hytale vers `.blockymodel` et `.blockyanim`.
-3. Placer les fichiers dans `assets/Server/Models/HyPerksVFX/`.
-4. Mettre a jour chaque JSON pour pointer vers tes fichiers custom:
+3. Placer les assets modeles custom dans `assets/Common/VFX/HyPerks/`.
+4. Mettre a jour chaque JSON runtime dans `assets/Server/Models/HyPerksVFX/` pour pointer vers tes fichiers custom:
    - `Model`
    - `Texture`
    - `AnimationSets`
@@ -113,7 +113,7 @@ Application optionnelle des refs premium aux JSON runtime (a faire quand les ass
 powershell -ExecutionPolicy Bypass -File scripts/stage_model_vfx_premium.ps1 -ApplyToRuntimeJson -RequireAssetsPresent
 ```
 
-Generation d'un pack premium 100% custom (textures + `.blockymodel` + `.blockyanim`, sans reutiliser les assets vanilla):
+Generation d'un pack premium 100% custom (textures + `.blockymodel` + `.blockyanim`, sans reutiliser les assets vanilla, refs `VFX/HyPerks/...`):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/generate_model_vfx_custom_assets.ps1 -CleanExisting

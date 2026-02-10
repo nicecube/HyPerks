@@ -2,7 +2,7 @@ param(
     [string]$Root = ".",
     [string]$AssetsZip = "..\\SharedRuntime\\Assets.zip",
     [string]$RuntimeJsonRelativePath = "assets/Server/Models/HyPerksVFX",
-    [string]$PremiumRelativePath = "assets/Server/Models/HyPerksVFX/Premium",
+    [string]$PremiumRelativePath = "assets/Common/VFX/HyPerks",
     [string]$TemplatesRelativePath = "docs/model-vfx-templates",
     [switch]$DryRun
 )
@@ -160,9 +160,9 @@ try {
             Copy-ZipEntryToFile -ZipArchive $zip -EntryPath $mapping.Animation -DestinationPath $destAnimation -DryRunMode:$DryRun
         }
 
-        $modelRef = "Server/Models/HyPerksVFX/Premium/$($mapping.Profile)/$modelLeaf"
-        $textureRef = "Server/Models/HyPerksVFX/Premium/$($mapping.Profile)/$textureLeaf"
-        $animationRef = if ([string]::IsNullOrWhiteSpace($mapping.Animation)) { "" } else { "Server/Models/HyPerksVFX/Premium/$($mapping.Profile)/$animationLeaf" }
+        $modelRef = "VFX/HyPerks/$($mapping.Profile)/$modelLeaf"
+        $textureRef = "VFX/HyPerks/$($mapping.Profile)/$textureLeaf"
+        $animationRef = if ([string]::IsNullOrWhiteSpace($mapping.Animation)) { "" } else { "VFX/HyPerks/$($mapping.Profile)/$animationLeaf" }
 
         $runtimePath = Join-Path $runtimeJsonDir $mapping.Target
         if (-not (Test-Path -Path $runtimePath -PathType Leaf)) {

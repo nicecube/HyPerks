@@ -1,6 +1,6 @@
 {
-    "Model":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Rig_Inner.blockymodel",
-    "Texture":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Atlas.png",
+    "Model":  "VFX/HyPerks/WingWangSigil/WingWangSigil_Rig_Inner.blockymodel",
+    "Texture":  "VFX/HyPerks/WingWangSigil/WingWangSigil_Atlas.png",
     "EyeHeight":  1.3,
     "HitBox":  {
                    "Max":  {

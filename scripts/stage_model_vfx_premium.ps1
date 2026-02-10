@@ -29,11 +29,18 @@ function Resolve-AssetRefPath {
     }
 
     $normalized = $AssetRef.Trim().Replace('\', '/')
-    if (-not ($normalized.StartsWith("Server/") -or $normalized.StartsWith("Common/"))) {
-        return $null
+    if ($normalized.StartsWith("Server/") -or $normalized.StartsWith("Common/")) {
+        return Join-Path $AssetsRoot ($normalized.Replace('/', '\'))
     }
 
-    return Join-Path $AssetsRoot ($normalized.Replace('/', '\'))
+    $commonRoots = @("Characters/", "NPC/", "Items/", "VFX/", "Equipment/")
+    foreach ($root in $commonRoots) {
+        if ($normalized.StartsWith($root)) {
+            return Join-Path (Join-Path $AssetsRoot "Common") ($normalized.Replace('/', '\'))
+        }
+    }
+
+    return $null
 }
 
 function Write-Utf8NoBom {

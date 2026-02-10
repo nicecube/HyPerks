@@ -1,6 +1,6 @@
 {
-    "Model":  "Server/Models/HyPerksVFX/Premium/StormClouds/StormClouds_Rig_Ring.blockymodel",
-    "Texture":  "Server/Models/HyPerksVFX/Premium/StormClouds/StormClouds_Atlas.png",
+    "Model":  "VFX/HyPerks/StormClouds/StormClouds_Rig_Ring.blockymodel",
+    "Texture":  "VFX/HyPerks/StormClouds/StormClouds_Atlas.png",
     "EyeHeight":  2.0,
     "HitBox":  {
                    "Max":  {
@@ -20,7 +20,7 @@
                           "Idle":  {
                                        "Animations":  [
                                                           {
-                                                              "Animation":  "Server/Models/HyPerksVFX/Premium/StormClouds/StormClouds_Rig_Ring_Idle.blockyanim",
+                                                              "Animation":  "VFX/HyPerks/StormClouds/StormClouds_Rig_Ring_Idle.blockyanim",
                                                               "BlendingDuration":  0.08,
                                                               "Speed":  1
                                                           }

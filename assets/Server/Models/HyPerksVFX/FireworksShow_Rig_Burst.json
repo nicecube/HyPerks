@@ -1,6 +1,6 @@
 {
-    "Model":  "Server/Models/HyPerksVFX/Premium/FireworksShow/FireworksShow_Rig_Burst.blockymodel",
-    "Texture":  "Server/Models/HyPerksVFX/Premium/FireworksShow/FireworksShow_Atlas.png",
+    "Model":  "VFX/HyPerks/FireworksShow/FireworksShow_Rig_Burst.blockymodel",
+    "Texture":  "VFX/HyPerks/FireworksShow/FireworksShow_Atlas.png",
     "EyeHeight":  1.8,
     "HitBox":  {
                    "Max":  {

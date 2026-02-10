@@ -1,6 +1,6 @@
 {
-    "Model":  "Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Rig_HelixFire.blockymodel",
-    "Texture":  "Server/Models/HyPerksVFX/Premium/FireIceCone/FireIceCone_Atlas.png",
+    "Model":  "VFX/HyPerks/FireIceCone/FireIceCone_Rig_HelixFire.blockymodel",
+    "Texture":  "VFX/HyPerks/FireIceCone/FireIceCone_Atlas.png",
     "EyeHeight":  1.5,
     "HitBox":  {
                    "Max":  {

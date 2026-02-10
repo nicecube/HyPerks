@@ -85,7 +85,7 @@ function BuildAnim([string]$name){
   }
 }
 $root=ResolveP $Root
-$premium=Join-Path $root 'assets/Server/Models/HyPerksVFX/Premium'
+$premium=Join-Path $root 'assets/Common/VFX/HyPerks'
 $dirs=@{FireIceCone=(Join-Path $premium 'FireIceCone');StormClouds=(Join-Path $premium 'StormClouds');WingWangSigil=(Join-Path $premium 'WingWangSigil');FireworksShow=(Join-Path $premium 'FireworksShow')}
 foreach($d in $dirs.Values){ if(!(Test-Path $d)){ New-Item -ItemType Directory -Force $d|Out-Null }; if($CleanExisting){ Get-ChildItem $d -File | Where-Object Name -ne '_EXPECTED_FILES.txt' | Remove-Item -Force } }
 

@@ -1,6 +1,6 @@
 {
-    "Model":  "Server/Models/HyPerksVFX/Premium/StormClouds/StormClouds_Rig_Core.blockymodel",
-    "Texture":  "Server/Models/HyPerksVFX/Premium/StormClouds/StormClouds_Atlas.png",
+    "Model":  "VFX/HyPerks/StormClouds/StormClouds_Rig_Core.blockymodel",
+    "Texture":  "VFX/HyPerks/StormClouds/StormClouds_Atlas.png",
     "EyeHeight":  2.1,
     "HitBox":  {
                    "Max":  {
