@@ -43,7 +43,7 @@
                                            "name":  "StormHeart",
                                            "position":  {
                                                             "x":  0,
-                                                            "y":  18,
+                                                            "y":  19,
                                                             "z":  0
                                                         },
                                            "orientation":  {
@@ -150,11 +150,566 @@
                                                         ]
                                        },
                                        {
+                                           "id":  "3",
+                                           "name":  "StormHeartInner",
+                                           "position":  {
+                                                            "x":  0,
+                                                            "y":  19,
+                                                            "z":  0
+                                                        },
+                                           "orientation":  {
+                                                               "x":  0,
+                                                               "y":  0,
+                                                               "z":  0,
+                                                               "w":  1
+                                                           },
+                                           "shape":  {
+                                                         "type":  "box",
+                                                         "offset":  {
+                                                                        "x":  0,
+                                                                        "y":  0,
+                                                                        "z":  0
+                                                                    },
+                                                         "stretch":  {
+                                                                         "x":  1,
+                                                                         "y":  1,
+                                                                         "z":  1
+                                                                     },
+                                                         "settings":  {
+                                                                          "isPiece":  false,
+                                                                          "size":  {
+                                                                                       "x":  6,
+                                                                                       "y":  18,
+                                                                                       "z":  6
+                                                                                   }
+                                                                      },
+                                                         "textureLayout":  {
+                                                                               "back":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  192,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "right":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  192,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "front":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  192,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "left":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  192,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "top":  {
+                                                                                           "offset":  {
+                                                                                                          "x":  192,
+                                                                                                          "y":  0
+                                                                                                      },
+                                                                                           "mirror":  {
+                                                                                                          "x":  false,
+                                                                                                          "y":  false
+                                                                                                      },
+                                                                                           "angle":  0
+                                                                                       },
+                                                                               "bottom":  {
+                                                                                              "offset":  {
+                                                                                                             "x":  192,
+                                                                                                             "y":  0
+                                                                                                         },
+                                                                                              "mirror":  {
+                                                                                                             "x":  false,
+                                                                                                             "y":  false
+                                                                                                         },
+                                                                                              "angle":  0
+                                                                                          }
+                                                                           },
+                                                         "unwrapMode":  "custom",
+                                                         "visible":  true,
+                                                         "doubleSided":  false,
+                                                         "shadingMode":  "fullbright"
+                                                     },
+                                           "children":  [
+
+                                                        ]
+                                       },
+                                       {
+                                           "id":  "4",
+                                           "name":  "CoreCloudA",
+                                           "position":  {
+                                                            "x":  -7,
+                                                            "y":  23,
+                                                            "z":  0
+                                                        },
+                                           "orientation":  {
+                                                               "x":  0,
+                                                               "y":  0,
+                                                               "z":  0,
+                                                               "w":  1
+                                                           },
+                                           "shape":  {
+                                                         "type":  "box",
+                                                         "offset":  {
+                                                                        "x":  0,
+                                                                        "y":  0,
+                                                                        "z":  0
+                                                                    },
+                                                         "stretch":  {
+                                                                         "x":  1,
+                                                                         "y":  1,
+                                                                         "z":  1
+                                                                     },
+                                                         "settings":  {
+                                                                          "isPiece":  false,
+                                                                          "size":  {
+                                                                                       "x":  8,
+                                                                                       "y":  6,
+                                                                                       "z":  7
+                                                                                   }
+                                                                      },
+                                                         "textureLayout":  {
+                                                                               "back":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "right":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "front":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "left":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "top":  {
+                                                                                           "offset":  {
+                                                                                                          "x":  0,
+                                                                                                          "y":  0
+                                                                                                      },
+                                                                                           "mirror":  {
+                                                                                                          "x":  false,
+                                                                                                          "y":  false
+                                                                                                      },
+                                                                                           "angle":  0
+                                                                                       },
+                                                                               "bottom":  {
+                                                                                              "offset":  {
+                                                                                                             "x":  0,
+                                                                                                             "y":  0
+                                                                                                         },
+                                                                                              "mirror":  {
+                                                                                                             "x":  false,
+                                                                                                             "y":  false
+                                                                                                         },
+                                                                                              "angle":  0
+                                                                                          }
+                                                                           },
+                                                         "unwrapMode":  "custom",
+                                                         "visible":  true,
+                                                         "doubleSided":  false,
+                                                         "shadingMode":  "flat"
+                                                     },
+                                           "children":  [
+
+                                                        ]
+                                       },
+                                       {
+                                           "id":  "5",
+                                           "name":  "CoreCloudB",
+                                           "position":  {
+                                                            "x":  7,
+                                                            "y":  23,
+                                                            "z":  0
+                                                        },
+                                           "orientation":  {
+                                                               "x":  0,
+                                                               "y":  0,
+                                                               "z":  0,
+                                                               "w":  1
+                                                           },
+                                           "shape":  {
+                                                         "type":  "box",
+                                                         "offset":  {
+                                                                        "x":  0,
+                                                                        "y":  0,
+                                                                        "z":  0
+                                                                    },
+                                                         "stretch":  {
+                                                                         "x":  1,
+                                                                         "y":  1,
+                                                                         "z":  1
+                                                                     },
+                                                         "settings":  {
+                                                                          "isPiece":  false,
+                                                                          "size":  {
+                                                                                       "x":  8,
+                                                                                       "y":  6,
+                                                                                       "z":  7
+                                                                                   }
+                                                                      },
+                                                         "textureLayout":  {
+                                                                               "back":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "right":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "front":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "left":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "top":  {
+                                                                                           "offset":  {
+                                                                                                          "x":  0,
+                                                                                                          "y":  0
+                                                                                                      },
+                                                                                           "mirror":  {
+                                                                                                          "x":  false,
+                                                                                                          "y":  false
+                                                                                                      },
+                                                                                           "angle":  0
+                                                                                       },
+                                                                               "bottom":  {
+                                                                                              "offset":  {
+                                                                                                             "x":  0,
+                                                                                                             "y":  0
+                                                                                                         },
+                                                                                              "mirror":  {
+                                                                                                             "x":  false,
+                                                                                                             "y":  false
+                                                                                                         },
+                                                                                              "angle":  0
+                                                                                          }
+                                                                           },
+                                                         "unwrapMode":  "custom",
+                                                         "visible":  true,
+                                                         "doubleSided":  false,
+                                                         "shadingMode":  "flat"
+                                                     },
+                                           "children":  [
+
+                                                        ]
+                                       },
+                                       {
+                                           "id":  "6",
+                                           "name":  "CoreCloudC",
+                                           "position":  {
+                                                            "x":  0,
+                                                            "y":  23,
+                                                            "z":  7
+                                                        },
+                                           "orientation":  {
+                                                               "x":  0,
+                                                               "y":  0,
+                                                               "z":  0,
+                                                               "w":  1
+                                                           },
+                                           "shape":  {
+                                                         "type":  "box",
+                                                         "offset":  {
+                                                                        "x":  0,
+                                                                        "y":  0,
+                                                                        "z":  0
+                                                                    },
+                                                         "stretch":  {
+                                                                         "x":  1,
+                                                                         "y":  1,
+                                                                         "z":  1
+                                                                     },
+                                                         "settings":  {
+                                                                          "isPiece":  false,
+                                                                          "size":  {
+                                                                                       "x":  7,
+                                                                                       "y":  6,
+                                                                                       "z":  8
+                                                                                   }
+                                                                      },
+                                                         "textureLayout":  {
+                                                                               "back":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "right":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "front":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "left":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "top":  {
+                                                                                           "offset":  {
+                                                                                                          "x":  0,
+                                                                                                          "y":  0
+                                                                                                      },
+                                                                                           "mirror":  {
+                                                                                                          "x":  false,
+                                                                                                          "y":  false
+                                                                                                      },
+                                                                                           "angle":  0
+                                                                                       },
+                                                                               "bottom":  {
+                                                                                              "offset":  {
+                                                                                                             "x":  0,
+                                                                                                             "y":  0
+                                                                                                         },
+                                                                                              "mirror":  {
+                                                                                                             "x":  false,
+                                                                                                             "y":  false
+                                                                                                         },
+                                                                                              "angle":  0
+                                                                                          }
+                                                                           },
+                                                         "unwrapMode":  "custom",
+                                                         "visible":  true,
+                                                         "doubleSided":  false,
+                                                         "shadingMode":  "flat"
+                                                     },
+                                           "children":  [
+
+                                                        ]
+                                       },
+                                       {
                                            "id":  "7",
+                                           "name":  "CoreCloudD",
+                                           "position":  {
+                                                            "x":  0,
+                                                            "y":  23,
+                                                            "z":  -7
+                                                        },
+                                           "orientation":  {
+                                                               "x":  0,
+                                                               "y":  0,
+                                                               "z":  0,
+                                                               "w":  1
+                                                           },
+                                           "shape":  {
+                                                         "type":  "box",
+                                                         "offset":  {
+                                                                        "x":  0,
+                                                                        "y":  0,
+                                                                        "z":  0
+                                                                    },
+                                                         "stretch":  {
+                                                                         "x":  1,
+                                                                         "y":  1,
+                                                                         "z":  1
+                                                                     },
+                                                         "settings":  {
+                                                                          "isPiece":  false,
+                                                                          "size":  {
+                                                                                       "x":  7,
+                                                                                       "y":  6,
+                                                                                       "z":  8
+                                                                                   }
+                                                                      },
+                                                         "textureLayout":  {
+                                                                               "back":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "right":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "front":  {
+                                                                                             "offset":  {
+                                                                                                            "x":  0,
+                                                                                                            "y":  0
+                                                                                                        },
+                                                                                             "mirror":  {
+                                                                                                            "x":  false,
+                                                                                                            "y":  false
+                                                                                                        },
+                                                                                             "angle":  0
+                                                                                         },
+                                                                               "left":  {
+                                                                                            "offset":  {
+                                                                                                           "x":  0,
+                                                                                                           "y":  0
+                                                                                                       },
+                                                                                            "mirror":  {
+                                                                                                           "x":  false,
+                                                                                                           "y":  false
+                                                                                                       },
+                                                                                            "angle":  0
+                                                                                        },
+                                                                               "top":  {
+                                                                                           "offset":  {
+                                                                                                          "x":  0,
+                                                                                                          "y":  0
+                                                                                                      },
+                                                                                           "mirror":  {
+                                                                                                          "x":  false,
+                                                                                                          "y":  false
+                                                                                                      },
+                                                                                           "angle":  0
+                                                                                       },
+                                                                               "bottom":  {
+                                                                                              "offset":  {
+                                                                                                             "x":  0,
+                                                                                                             "y":  0
+                                                                                                         },
+                                                                                              "mirror":  {
+                                                                                                             "x":  false,
+                                                                                                             "y":  false
+                                                                                                         },
+                                                                                              "angle":  0
+                                                                                          }
+                                                                           },
+                                                         "unwrapMode":  "custom",
+                                                         "visible":  true,
+                                                         "doubleSided":  false,
+                                                         "shadingMode":  "flat"
+                                                     },
+                                           "children":  [
+
+                                                        ]
+                                       },
+                                       {
+                                           "id":  "14",
                                            "name":  "ArcPivot",
                                            "position":  {
                                                             "x":  0,
-                                                            "y":  20,
+                                                            "y":  0,
                                                             "z":  0
                                                         },
                                            "orientation":  {
@@ -188,183 +743,69 @@
                                                      },
                                            "children":  [
                                                             {
-                                                                "id":  "3",
-                                                                "name":  "ArcA",
+                                                                "id":  "8",
+                                                                "name":  "Arc_1",
                                                                 "position":  {
-                                                                                 "x":  0,
-                                                                                 "y":  0,
+                                                                                 "x":  9.5262794416288266,
+                                                                                 "y":  20,
+                                                                                 "z":  5.4999999999999991
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.25881904510252074,
+                                                                                    "z":  0,
+                                                                                    "w":  0.96592582628906831
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  14,
+                                                                                                            "y":  12,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  128,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "9",
+                                                                "name":  "Arc_2",
+                                                                "position":  {
+                                                                                 "x":  6.7353349460230749E-16,
+                                                                                 "y":  20,
                                                                                  "z":  11
-                                                                             },
-                                                                "orientation":  {
-                                                                                    "x":  0,
-                                                                                    "y":  0,
-                                                                                    "z":  0,
-                                                                                    "w":  1
-                                                                                },
-                                                                "shape":  {
-                                                                              "type":  "quad",
-                                                                              "offset":  {
-                                                                                             "x":  0,
-                                                                                             "y":  0,
-                                                                                             "z":  0
-                                                                                         },
-                                                                              "stretch":  {
-                                                                                              "x":  1,
-                                                                                              "y":  1,
-                                                                                              "z":  1
-                                                                                          },
-                                                                              "settings":  {
-                                                                                               "isPiece":  false,
-                                                                                               "size":  {
-                                                                                                            "x":  16,
-                                                                                                            "y":  12,
-                                                                                                            "z":  0
-                                                                                                        },
-                                                                                               "normal":  "+Z"
-                                                                                           },
-                                                                              "textureLayout":  {
-                                                                                                    "front":  {
-                                                                                                                  "offset":  {
-                                                                                                                                 "x":  128,
-                                                                                                                                 "y":  0
-                                                                                                                             },
-                                                                                                                  "mirror":  {
-                                                                                                                                 "x":  false,
-                                                                                                                                 "y":  false
-                                                                                                                             },
-                                                                                                                  "angle":  0
-                                                                                                              }
-                                                                                                },
-                                                                              "unwrapMode":  "custom",
-                                                                              "visible":  true,
-                                                                              "doubleSided":  true,
-                                                                              "shadingMode":  "fullbright"
-                                                                          },
-                                                                "children":  [
-
-                                                                             ]
-                                                            },
-                                                            {
-                                                                "id":  "4",
-                                                                "name":  "ArcB",
-                                                                "position":  {
-                                                                                 "x":  11,
-                                                                                 "y":  0,
-                                                                                 "z":  0
-                                                                             },
-                                                                "orientation":  {
-                                                                                    "x":  0,
-                                                                                    "y":  0.70710678118654746,
-                                                                                    "z":  0,
-                                                                                    "w":  0.70710678118654757
-                                                                                },
-                                                                "shape":  {
-                                                                              "type":  "quad",
-                                                                              "offset":  {
-                                                                                             "x":  0,
-                                                                                             "y":  0,
-                                                                                             "z":  0
-                                                                                         },
-                                                                              "stretch":  {
-                                                                                              "x":  1,
-                                                                                              "y":  1,
-                                                                                              "z":  1
-                                                                                          },
-                                                                              "settings":  {
-                                                                                               "isPiece":  false,
-                                                                                               "size":  {
-                                                                                                            "x":  16,
-                                                                                                            "y":  12,
-                                                                                                            "z":  0
-                                                                                                        },
-                                                                                               "normal":  "+Z"
-                                                                                           },
-                                                                              "textureLayout":  {
-                                                                                                    "front":  {
-                                                                                                                  "offset":  {
-                                                                                                                                 "x":  128,
-                                                                                                                                 "y":  0
-                                                                                                                             },
-                                                                                                                  "mirror":  {
-                                                                                                                                 "x":  false,
-                                                                                                                                 "y":  false
-                                                                                                                             },
-                                                                                                                  "angle":  0
-                                                                                                              }
-                                                                                                },
-                                                                              "unwrapMode":  "custom",
-                                                                              "visible":  true,
-                                                                              "doubleSided":  true,
-                                                                              "shadingMode":  "fullbright"
-                                                                          },
-                                                                "children":  [
-
-                                                                             ]
-                                                            },
-                                                            {
-                                                                "id":  "5",
-                                                                "name":  "ArcC",
-                                                                "position":  {
-                                                                                 "x":  0,
-                                                                                 "y":  0,
-                                                                                 "z":  -11
-                                                                             },
-                                                                "orientation":  {
-                                                                                    "x":  0,
-                                                                                    "y":  1,
-                                                                                    "z":  0,
-                                                                                    "w":  6.1230317691118863E-17
-                                                                                },
-                                                                "shape":  {
-                                                                              "type":  "quad",
-                                                                              "offset":  {
-                                                                                             "x":  0,
-                                                                                             "y":  0,
-                                                                                             "z":  0
-                                                                                         },
-                                                                              "stretch":  {
-                                                                                              "x":  1,
-                                                                                              "y":  1,
-                                                                                              "z":  1
-                                                                                          },
-                                                                              "settings":  {
-                                                                                               "isPiece":  false,
-                                                                                               "size":  {
-                                                                                                            "x":  16,
-                                                                                                            "y":  12,
-                                                                                                            "z":  0
-                                                                                                        },
-                                                                                               "normal":  "+Z"
-                                                                                           },
-                                                                              "textureLayout":  {
-                                                                                                    "front":  {
-                                                                                                                  "offset":  {
-                                                                                                                                 "x":  128,
-                                                                                                                                 "y":  0
-                                                                                                                             },
-                                                                                                                  "mirror":  {
-                                                                                                                                 "x":  false,
-                                                                                                                                 "y":  false
-                                                                                                                             },
-                                                                                                                  "angle":  0
-                                                                                                              }
-                                                                                                },
-                                                                              "unwrapMode":  "custom",
-                                                                              "visible":  true,
-                                                                              "doubleSided":  true,
-                                                                              "shadingMode":  "fullbright"
-                                                                          },
-                                                                "children":  [
-
-                                                                             ]
-                                                            },
-                                                            {
-                                                                "id":  "6",
-                                                                "name":  "ArcD",
-                                                                "position":  {
-                                                                                 "x":  -11,
-                                                                                 "y":  0,
-                                                                                 "z":  0
                                                                              },
                                                                 "orientation":  {
                                                                                     "x":  0,
@@ -387,7 +828,235 @@
                                                                               "settings":  {
                                                                                                "isPiece":  false,
                                                                                                "size":  {
-                                                                                                            "x":  16,
+                                                                                                            "x":  14,
+                                                                                                            "y":  12,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  128,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "10",
+                                                                "name":  "Arc_3",
+                                                                "position":  {
+                                                                                 "x":  -9.5262794416288266,
+                                                                                 "y":  20,
+                                                                                 "z":  5.4999999999999991
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.96592582628906831,
+                                                                                    "z":  0,
+                                                                                    "w":  0.25881904510252074
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  14,
+                                                                                                            "y":  12,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  128,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "11",
+                                                                "name":  "Arc_4",
+                                                                "position":  {
+                                                                                 "x":  -9.5262794416288248,
+                                                                                 "y":  20,
+                                                                                 "z":  -5.5000000000000009
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.96592582628906831,
+                                                                                    "z":  0,
+                                                                                    "w":  -0.25881904510252085
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  14,
+                                                                                                            "y":  12,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  128,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "12",
+                                                                "name":  "Arc_5",
+                                                                "position":  {
+                                                                                 "x":  -2.0206004838069225E-15,
+                                                                                 "y":  20,
+                                                                                 "z":  -11
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.70710678118654757,
+                                                                                    "z":  0,
+                                                                                    "w":  -0.70710678118654746
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  14,
+                                                                                                            "y":  12,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  128,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "13",
+                                                                "name":  "Arc_6",
+                                                                "position":  {
+                                                                                 "x":  9.526279441628823,
+                                                                                 "y":  20,
+                                                                                 "z":  -5.5000000000000053
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.258819045102521,
+                                                                                    "z":  0,
+                                                                                    "w":  -0.9659258262890682
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  14,
                                                                                                             "y":  12,
                                                                                                             "z":  0
                                                                                                         },

@@ -39,7 +39,7 @@
                                 },
                       "children":  [
                                        {
-                                           "id":  "5",
+                                           "id":  "11",
                                            "name":  "HelixPivot",
                                            "position":  {
                                                             "x":  0,
@@ -78,11 +78,11 @@
                                            "children":  [
                                                             {
                                                                 "id":  "2",
-                                                                "name":  "RibbonA",
+                                                                "name":  "Ribbon_0",
                                                                 "position":  {
-                                                                                 "x":  0,
-                                                                                 "y":  8,
-                                                                                 "z":  13
+                                                                                 "x":  8.5,
+                                                                                 "y":  -12,
+                                                                                 "z":  0
                                                                              },
                                                                 "orientation":  {
                                                                                     "x":  0,
@@ -105,8 +105,8 @@
                                                                               "settings":  {
                                                                                                "isPiece":  false,
                                                                                                "size":  {
-                                                                                                            "x":  24,
-                                                                                                            "y":  28,
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
                                                                                                             "z":  0
                                                                                                         },
                                                                                                "normal":  "+Z"
@@ -135,17 +135,17 @@
                                                             },
                                                             {
                                                                 "id":  "3",
-                                                                "name":  "RibbonB",
+                                                                "name":  "Ribbon_1",
                                                                 "position":  {
-                                                                                 "x":  0,
-                                                                                 "y":  0,
-                                                                                 "z":  -13
+                                                                                 "x":  7.66044443118978,
+                                                                                 "y":  -7,
+                                                                                 "z":  6.4278760968653925
                                                                              },
                                                                 "orientation":  {
                                                                                     "x":  0,
-                                                                                    "y":  0.70710678118654746,
+                                                                                    "y":  -0.34202014332566871,
                                                                                     "z":  0,
-                                                                                    "w":  0.70710678118654757
+                                                                                    "w":  0.93969262078590843
                                                                                 },
                                                                 "shape":  {
                                                                               "type":  "quad",
@@ -162,8 +162,8 @@
                                                                               "settings":  {
                                                                                                "isPiece":  false,
                                                                                                "size":  {
-                                                                                                            "x":  24,
-                                                                                                            "y":  28,
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
                                                                                                             "z":  0
                                                                                                         },
                                                                                                "normal":  "+Z"
@@ -192,17 +192,17 @@
                                                             },
                                                             {
                                                                 "id":  "4",
-                                                                "name":  "RibbonC",
+                                                                "name":  "Ribbon_2",
                                                                 "position":  {
-                                                                                 "x":  0,
-                                                                                 "y":  -8,
-                                                                                 "z":  13
+                                                                                 "x":  1.4760095101689086,
+                                                                                 "y":  -2,
+                                                                                 "z":  8.3708659006037678
                                                                              },
                                                                 "orientation":  {
                                                                                     "x":  0,
-                                                                                    "y":  1,
+                                                                                    "y":  -0.64278760968653925,
                                                                                     "z":  0,
-                                                                                    "w":  6.1230317691118863E-17
+                                                                                    "w":  0.766044443118978
                                                                                 },
                                                                 "shape":  {
                                                                               "type":  "quad",
@@ -219,8 +219,350 @@
                                                                               "settings":  {
                                                                                                "isPiece":  false,
                                                                                                "size":  {
-                                                                                                            "x":  24,
-                                                                                                            "y":  28,
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  64,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "5",
+                                                                "name":  "Ribbon_3",
+                                                                "position":  {
+                                                                                 "x":  -4.9999999999999982,
+                                                                                 "y":  3,
+                                                                                 "z":  8.6602540378443873
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.8660254037844386,
+                                                                                    "z":  0,
+                                                                                    "w":  0.50000000000000011
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  64,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "6",
+                                                                "name":  "Ribbon_4",
+                                                                "position":  {
+                                                                                 "x":  -7.987387276680221,
+                                                                                 "y":  8,
+                                                                                 "z":  2.9071712182681857
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.984807753012208,
+                                                                                    "z":  0,
+                                                                                    "w":  0.17364817766693041
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  64,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "7",
+                                                                "name":  "Ribbon_5",
+                                                                "position":  {
+                                                                                 "x":  -9.3969262078590852,
+                                                                                 "y":  13,
+                                                                                 "z":  -3.4202014332566866
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.984807753012208,
+                                                                                    "z":  0,
+                                                                                    "w":  -0.1736481776669303
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  64,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "8",
+                                                                "name":  "Ribbon_6",
+                                                                "position":  {
+                                                                                 "x":  -4.2500000000000036,
+                                                                                 "y":  18,
+                                                                                 "z":  -7.3612159321677257
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.86602540378443871,
+                                                                                    "z":  0,
+                                                                                    "w":  -0.49999999999999978
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  64,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "9",
+                                                                "name":  "Ribbon_7",
+                                                                "position":  {
+                                                                                 "x":  1.7364817766692997,
+                                                                                 "y":  23,
+                                                                                 "z":  -9.8480775301220813
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.64278760968653947,
+                                                                                    "z":  0,
+                                                                                    "w":  -0.7660444431189779
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
+                                                                                                            "z":  0
+                                                                                                        },
+                                                                                               "normal":  "+Z"
+                                                                                           },
+                                                                              "textureLayout":  {
+                                                                                                    "front":  {
+                                                                                                                  "offset":  {
+                                                                                                                                 "x":  64,
+                                                                                                                                 "y":  0
+                                                                                                                             },
+                                                                                                                  "mirror":  {
+                                                                                                                                 "x":  false,
+                                                                                                                                 "y":  false
+                                                                                                                             },
+                                                                                                                  "angle":  0
+                                                                                                              }
+                                                                                                },
+                                                                              "unwrapMode":  "custom",
+                                                                              "visible":  true,
+                                                                              "doubleSided":  true,
+                                                                              "shadingMode":  "fullbright"
+                                                                          },
+                                                                "children":  [
+
+                                                                             ]
+                                                            },
+                                                            {
+                                                                "id":  "10",
+                                                                "name":  "Ribbon_8",
+                                                                "position":  {
+                                                                                 "x":  6.5113777665113108,
+                                                                                 "y":  28,
+                                                                                 "z":  -5.4636946823355865
+                                                                             },
+                                                                "orientation":  {
+                                                                                    "x":  0,
+                                                                                    "y":  -0.34202014332566888,
+                                                                                    "z":  0,
+                                                                                    "w":  -0.93969262078590832
+                                                                                },
+                                                                "shape":  {
+                                                                              "type":  "quad",
+                                                                              "offset":  {
+                                                                                             "x":  0,
+                                                                                             "y":  0,
+                                                                                             "z":  0
+                                                                                         },
+                                                                              "stretch":  {
+                                                                                              "x":  1,
+                                                                                              "y":  1,
+                                                                                              "z":  1
+                                                                                          },
+                                                                              "settings":  {
+                                                                                               "isPiece":  false,
+                                                                                               "size":  {
+                                                                                                            "x":  20,
+                                                                                                            "y":  18,
                                                                                                             "z":  0
                                                                                                         },
                                                                                                "normal":  "+Z"
@@ -250,7 +592,7 @@
                                                         ]
                                        },
                                        {
-                                           "id":  "6",
+                                           "id":  "12",
                                            "name":  "HelixCore",
                                            "position":  {
                                                             "x":  0,
@@ -279,7 +621,7 @@
                                                                           "isPiece":  false,
                                                                           "size":  {
                                                                                        "x":  6,
-                                                                                       "y":  18,
+                                                                                       "y":  34,
                                                                                        "z":  6
                                                                                    }
                                                                       },

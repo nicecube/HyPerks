@@ -1,129 +1,304 @@
 {
     "formatVersion":  1,
-    "duration":  90,
+    "duration":  96,
     "holdLastKeyframe":  false,
     "nodeAnimations":  {
-                           "IcePivot":  {
-                                            "position":  [
+                           "FireShellPivot":  {
+                                                  "position":  [
 
-                                                         ],
-                                            "orientation":  [
-                                                                {
-                                                                    "time":  0,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  0,
-                                                                                  "z":  0,
-                                                                                  "w":  1
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  22,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  -0.15643446504023087,
-                                                                                  "z":  0,
-                                                                                  "w":  0.98768834059513777
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  45,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  0,
-                                                                                  "z":  0,
-                                                                                  "w":  1
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  68,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  0.15643446504023087,
-                                                                                  "z":  0,
-                                                                                  "w":  0.98768834059513777
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  90,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  0,
-                                                                                  "z":  0,
-                                                                                  "w":  1
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                }
-                                                            ],
-                                            "shapeStretch":  [
+                                                               ],
+                                                  "orientation":  [
+                                                                      {
+                                                                          "time":  0,
+                                                                          "delta":  {
+                                                                                        "x":  0,
+                                                                                        "y":  0,
+                                                                                        "z":  0,
+                                                                                        "w":  1
+                                                                                    },
+                                                                          "interpolationType":  "smooth"
+                                                                      },
+                                                                      {
+                                                                          "time":  24,
+                                                                          "delta":  {
+                                                                                        "x":  0,
+                                                                                        "y":  0.70710678118654746,
+                                                                                        "z":  0,
+                                                                                        "w":  0.70710678118654757
+                                                                                    },
+                                                                          "interpolationType":  "smooth"
+                                                                      },
+                                                                      {
+                                                                          "time":  48,
+                                                                          "delta":  {
+                                                                                        "x":  0,
+                                                                                        "y":  1,
+                                                                                        "z":  0,
+                                                                                        "w":  6.1230317691118863E-17
+                                                                                    },
+                                                                          "interpolationType":  "smooth"
+                                                                      },
+                                                                      {
+                                                                          "time":  72,
+                                                                          "delta":  {
+                                                                                        "x":  0,
+                                                                                        "y":  -0.70710678118654746,
+                                                                                        "z":  0,
+                                                                                        "w":  0.70710678118654757
+                                                                                    },
+                                                                          "interpolationType":  "smooth"
+                                                                      },
+                                                                      {
+                                                                          "time":  96,
+                                                                          "delta":  {
+                                                                                        "x":  0,
+                                                                                        "y":  0,
+                                                                                        "z":  0,
+                                                                                        "w":  1
+                                                                                    },
+                                                                          "interpolationType":  "smooth"
+                                                                      }
+                                                                  ],
+                                                  "shapeStretch":  [
 
-                                                             ],
-                                            "shapeVisible":  [
+                                                                   ],
+                                                  "shapeVisible":  [
 
-                                                             ],
-                                            "shapeUvOffset":  [
+                                                                   ],
+                                                  "shapeUvOffset":  [
 
-                                                              ]
-                                        },
-                           "OrbitPivot":  {
+                                                                    ]
+                                              },
+                           "IceShellPivot":  {
+                                                 "position":  [
+
+                                                              ],
+                                                 "orientation":  [
+                                                                     {
+                                                                         "time":  0,
+                                                                         "delta":  {
+                                                                                       "x":  0,
+                                                                                       "y":  0,
+                                                                                       "z":  0,
+                                                                                       "w":  1
+                                                                                   },
+                                                                         "interpolationType":  "smooth"
+                                                                     },
+                                                                     {
+                                                                         "time":  24,
+                                                                         "delta":  {
+                                                                                       "x":  0,
+                                                                                       "y":  -0.70710678118654746,
+                                                                                       "z":  0,
+                                                                                       "w":  0.70710678118654757
+                                                                                   },
+                                                                         "interpolationType":  "smooth"
+                                                                     },
+                                                                     {
+                                                                         "time":  48,
+                                                                         "delta":  {
+                                                                                       "x":  0,
+                                                                                       "y":  -1,
+                                                                                       "z":  0,
+                                                                                       "w":  6.1230317691118863E-17
+                                                                                   },
+                                                                         "interpolationType":  "smooth"
+                                                                     },
+                                                                     {
+                                                                         "time":  72,
+                                                                         "delta":  {
+                                                                                       "x":  0,
+                                                                                       "y":  0.70710678118654746,
+                                                                                       "z":  0,
+                                                                                       "w":  0.70710678118654757
+                                                                                   },
+                                                                         "interpolationType":  "smooth"
+                                                                     },
+                                                                     {
+                                                                         "time":  96,
+                                                                         "delta":  {
+                                                                                       "x":  0,
+                                                                                       "y":  0,
+                                                                                       "z":  0,
+                                                                                       "w":  1
+                                                                                   },
+                                                                         "interpolationType":  "smooth"
+                                                                     }
+                                                                 ],
+                                                 "shapeStretch":  [
+
+                                                                  ],
+                                                 "shapeVisible":  [
+
+                                                                  ],
+                                                 "shapeUvOffset":  [
+
+                                                                   ]
+                                             },
+                           "SparkOrbitPivot":  {
+                                                   "position":  [
+
+                                                                ],
+                                                   "orientation":  [
+                                                                       {
+                                                                           "time":  0,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  0,
+                                                                                         "z":  0,
+                                                                                         "w":  1
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  16,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  0.70710678118654746,
+                                                                                         "z":  0,
+                                                                                         "w":  0.70710678118654757
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  32,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  1,
+                                                                                         "z":  0,
+                                                                                         "w":  6.1230317691118863E-17
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  48,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  -0.70710678118654746,
+                                                                                         "z":  0,
+                                                                                         "w":  0.70710678118654757
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  64,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  0,
+                                                                                         "z":  0,
+                                                                                         "w":  1
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       }
+                                                                   ],
+                                                   "shapeStretch":  [
+
+                                                                    ],
+                                                   "shapeVisible":  [
+
+                                                                    ],
+                                                   "shapeUvOffset":  [
+
+                                                                     ]
+                                               },
+                           "GroundHaloPivot":  {
+                                                   "position":  [
+
+                                                                ],
+                                                   "orientation":  [
+                                                                       {
+                                                                           "time":  0,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  0,
+                                                                                         "z":  0,
+                                                                                         "w":  1
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  30,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  0.70710678118654746,
+                                                                                         "z":  0,
+                                                                                         "w":  0.70710678118654757
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  60,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  1,
+                                                                                         "z":  0,
+                                                                                         "w":  6.1230317691118863E-17
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  90,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  -0.70710678118654746,
+                                                                                         "z":  0,
+                                                                                         "w":  0.70710678118654757
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       },
+                                                                       {
+                                                                           "time":  120,
+                                                                           "delta":  {
+                                                                                         "x":  0,
+                                                                                         "y":  0,
+                                                                                         "z":  0,
+                                                                                         "w":  1
+                                                                                     },
+                                                                           "interpolationType":  "smooth"
+                                                                       }
+                                                                   ],
+                                                   "shapeStretch":  [
+
+                                                                    ],
+                                                   "shapeVisible":  [
+
+                                                                    ],
+                                                   "shapeUvOffset":  [
+
+                                                                     ]
+                                               },
+                           "ConeTier_4":  {
                                               "position":  [
-
+                                                               {
+                                                                   "time":  0,
+                                                                   "delta":  {
+                                                                                 "x":  0,
+                                                                                 "y":  32,
+                                                                                 "z":  0
+                                                                             },
+                                                                   "interpolationType":  "smooth"
+                                                               },
+                                                               {
+                                                                   "time":  48,
+                                                                   "delta":  {
+                                                                                 "x":  0,
+                                                                                 "y":  33.4,
+                                                                                 "z":  0
+                                                                             },
+                                                                   "interpolationType":  "smooth"
+                                                               },
+                                                               {
+                                                                   "time":  96,
+                                                                   "delta":  {
+                                                                                 "x":  0,
+                                                                                 "y":  32,
+                                                                                 "z":  0
+                                                                             },
+                                                                   "interpolationType":  "smooth"
+                                                               }
                                                            ],
                                               "orientation":  [
-                                                                  {
-                                                                      "time":  0,
-                                                                      "delta":  {
-                                                                                    "x":  0,
-                                                                                    "y":  0,
-                                                                                    "z":  0,
-                                                                                    "w":  1
-                                                                                },
-                                                                      "interpolationType":  "smooth"
-                                                                  },
-                                                                  {
-                                                                      "time":  11,
-                                                                      "delta":  {
-                                                                                    "x":  0,
-                                                                                    "y":  0.70710678118654746,
-                                                                                    "z":  0,
-                                                                                    "w":  0.70710678118654757
-                                                                                },
-                                                                      "interpolationType":  "smooth"
-                                                                  },
-                                                                  {
-                                                                      "time":  22,
-                                                                      "delta":  {
-                                                                                    "x":  0,
-                                                                                    "y":  1,
-                                                                                    "z":  0,
-                                                                                    "w":  6.1230317691118863E-17
-                                                                                },
-                                                                      "interpolationType":  "smooth"
-                                                                  },
-                                                                  {
-                                                                      "time":  34,
-                                                                      "delta":  {
-                                                                                    "x":  0,
-                                                                                    "y":  -0.70710678118654746,
-                                                                                    "z":  0,
-                                                                                    "w":  0.70710678118654757
-                                                                                },
-                                                                      "interpolationType":  "smooth"
-                                                                  },
-                                                                  {
-                                                                      "time":  45,
-                                                                      "delta":  {
-                                                                                    "x":  0,
-                                                                                    "y":  0,
-                                                                                    "z":  0,
-                                                                                    "w":  1
-                                                                                },
-                                                                      "interpolationType":  "smooth"
-                                                                  }
+
                                                               ],
                                               "shapeStretch":  [
 
@@ -135,61 +310,38 @@
 
                                                                 ]
                                           },
-                           "BaseCone":  {
+                           "ConeApex":  {
                                             "position":  [
-
+                                                             {
+                                                                 "time":  0,
+                                                                 "delta":  {
+                                                                               "x":  0,
+                                                                               "y":  39,
+                                                                               "z":  0
+                                                                           },
+                                                                 "interpolationType":  "smooth"
+                                                             },
+                                                             {
+                                                                 "time":  48,
+                                                                 "delta":  {
+                                                                               "x":  0,
+                                                                               "y":  40.2,
+                                                                               "z":  0
+                                                                           },
+                                                                 "interpolationType":  "smooth"
+                                                             },
+                                                             {
+                                                                 "time":  96,
+                                                                 "delta":  {
+                                                                               "x":  0,
+                                                                               "y":  39,
+                                                                               "z":  0
+                                                                           },
+                                                                 "interpolationType":  "smooth"
+                                                             }
                                                          ],
                                             "orientation":  [
-                                                                {
-                                                                    "time":  0,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  0,
-                                                                                  "z":  0,
-                                                                                  "w":  1
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  22,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  0.70710678118654746,
-                                                                                  "z":  0,
-                                                                                  "w":  0.70710678118654757
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  45,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  1,
-                                                                                  "z":  0,
-                                                                                  "w":  6.1230317691118863E-17
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  68,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  -0.70710678118654746,
-                                                                                  "z":  0,
-                                                                                  "w":  0.70710678118654757
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                },
-                                                                {
-                                                                    "time":  90,
-                                                                    "delta":  {
-                                                                                  "x":  0,
-                                                                                  "y":  0,
-                                                                                  "z":  0,
-                                                                                  "w":  1
-                                                                              },
-                                                                    "interpolationType":  "smooth"
-                                                                }
+
                                                             ],
                                             "shapeStretch":  [
 
@@ -200,72 +352,6 @@
                                             "shapeUvOffset":  [
 
                                                               ]
-                                        },
-                           "FirePivot":  {
-                                             "position":  [
-
-                                                          ],
-                                             "orientation":  [
-                                                                 {
-                                                                     "time":  0,
-                                                                     "delta":  {
-                                                                                   "x":  0,
-                                                                                   "y":  0,
-                                                                                   "z":  0,
-                                                                                   "w":  1
-                                                                               },
-                                                                     "interpolationType":  "smooth"
-                                                                 },
-                                                                 {
-                                                                     "time":  22,
-                                                                     "delta":  {
-                                                                                   "x":  0,
-                                                                                   "y":  0.20791169081775931,
-                                                                                   "z":  0,
-                                                                                   "w":  0.97814760073380569
-                                                                               },
-                                                                     "interpolationType":  "smooth"
-                                                                 },
-                                                                 {
-                                                                     "time":  45,
-                                                                     "delta":  {
-                                                                                   "x":  0,
-                                                                                   "y":  0,
-                                                                                   "z":  0,
-                                                                                   "w":  1
-                                                                               },
-                                                                     "interpolationType":  "smooth"
-                                                                 },
-                                                                 {
-                                                                     "time":  68,
-                                                                     "delta":  {
-                                                                                   "x":  0,
-                                                                                   "y":  -0.20791169081775931,
-                                                                                   "z":  0,
-                                                                                   "w":  0.97814760073380569
-                                                                               },
-                                                                     "interpolationType":  "smooth"
-                                                                 },
-                                                                 {
-                                                                     "time":  90,
-                                                                     "delta":  {
-                                                                                   "x":  0,
-                                                                                   "y":  0,
-                                                                                   "z":  0,
-                                                                                   "w":  1
-                                                                               },
-                                                                     "interpolationType":  "smooth"
-                                                                 }
-                                                             ],
-                                             "shapeStretch":  [
-
-                                                              ],
-                                             "shapeVisible":  [
-
-                                                              ],
-                                             "shapeUvOffset":  [
-
-                                                               ]
-                                         }
+                                        }
                        }
 }
