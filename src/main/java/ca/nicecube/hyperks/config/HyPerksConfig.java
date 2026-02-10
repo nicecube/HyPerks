@@ -11,6 +11,7 @@ public class HyPerksConfig {
     private String _commentWorlds = "worldWhitelist is used when allowInAllWorlds=false";
     private String _commentRuntime = "runtimeRenderIntervalMs valid range: 50..5000";
     private String _commentPersistence = "Set persistence.mode to json/sqlite/mysql";
+    private String _commentModelVfx = "modelVfx controls 3D rig budget and LOD thresholds";
     private String defaultLanguage = "en";
     private List<String> worldWhitelist = new ArrayList<>(List.of("default"));
     private boolean allowInAllWorlds = false;
@@ -21,6 +22,7 @@ public class HyPerksConfig {
     private int permissionCacheTtlMs = 1500;
     private boolean detailedCosmeticDescriptions = true;
     private MenuConfig menu = MenuConfig.defaults();
+    private ModelVfxConfig modelVfx = ModelVfxConfig.defaults();
     private PersistenceConfig persistence = PersistenceConfig.defaults();
     private boolean debugMode = false;
 
@@ -43,6 +45,9 @@ public class HyPerksConfig {
         }
         if (this._commentPersistence == null || this._commentPersistence.isBlank()) {
             this._commentPersistence = "Set persistence.mode to json/sqlite/mysql";
+        }
+        if (this._commentModelVfx == null || this._commentModelVfx.isBlank()) {
+            this._commentModelVfx = "modelVfx controls 3D rig budget and LOD thresholds";
         }
 
         if (this.defaultLanguage == null || this.defaultLanguage.isBlank()) {
@@ -91,6 +96,11 @@ public class HyPerksConfig {
             this.menu = MenuConfig.defaults();
         }
         this.menu.normalize();
+
+        if (this.modelVfx == null) {
+            this.modelVfx = ModelVfxConfig.defaults();
+        }
+        this.modelVfx.normalize();
 
         if (this.persistence == null) {
             this.persistence = PersistenceConfig.defaults();
@@ -154,6 +164,10 @@ public class HyPerksConfig {
         return menu;
     }
 
+    public ModelVfxConfig getModelVfx() {
+        return modelVfx;
+    }
+
     public PersistenceConfig getPersistence() {
         return persistence;
     }
@@ -192,6 +206,84 @@ public class HyPerksConfig {
 
         public String getGuiCommandSeed() {
             return guiCommandSeed;
+        }
+    }
+
+    public static class ModelVfxConfig {
+        private String _comment = "maxRigsPerPlayer range: 1..64, lodUltraMaxWorldPlayers range: 1..200, lodNearbyRadius range: 6..96, updateIntervalMs range: 50..1000";
+        private int maxRigsPerPlayer = 16;
+        private int lodUltraMaxWorldPlayers = 10;
+        private int lodNearbyRadius = 24;
+        private int updateIntervalMs = 50;
+
+        public static ModelVfxConfig defaults() {
+            return new ModelVfxConfig();
+        }
+
+        public void normalize() {
+            if (this._comment == null || this._comment.isBlank()) {
+                this._comment = "maxRigsPerPlayer range: 1..64, lodUltraMaxWorldPlayers range: 1..200, lodNearbyRadius range: 6..96, updateIntervalMs range: 50..1000";
+            }
+
+            if (this.maxRigsPerPlayer < 1) {
+                this.maxRigsPerPlayer = 1;
+            }
+            if (this.maxRigsPerPlayer > 64) {
+                this.maxRigsPerPlayer = 64;
+            }
+
+            if (this.lodUltraMaxWorldPlayers < 1) {
+                this.lodUltraMaxWorldPlayers = 1;
+            }
+            if (this.lodUltraMaxWorldPlayers > 200) {
+                this.lodUltraMaxWorldPlayers = 200;
+            }
+
+            if (this.lodNearbyRadius < 6) {
+                this.lodNearbyRadius = 6;
+            }
+            if (this.lodNearbyRadius > 96) {
+                this.lodNearbyRadius = 96;
+            }
+
+            if (this.updateIntervalMs < 50) {
+                this.updateIntervalMs = 50;
+            }
+            if (this.updateIntervalMs > 1000) {
+                this.updateIntervalMs = 1000;
+            }
+        }
+
+        public int getMaxRigsPerPlayer() {
+            return maxRigsPerPlayer;
+        }
+
+        public int getLodUltraMaxWorldPlayers() {
+            return lodUltraMaxWorldPlayers;
+        }
+
+        public int getUpdateIntervalMs() {
+            return updateIntervalMs;
+        }
+
+        public int getLodNearbyRadius() {
+            return lodNearbyRadius;
+        }
+
+        public void setMaxRigsPerPlayer(int maxRigsPerPlayer) {
+            this.maxRigsPerPlayer = maxRigsPerPlayer;
+        }
+
+        public void setLodUltraMaxWorldPlayers(int lodUltraMaxWorldPlayers) {
+            this.lodUltraMaxWorldPlayers = lodUltraMaxWorldPlayers;
+        }
+
+        public void setUpdateIntervalMs(int updateIntervalMs) {
+            this.updateIntervalMs = updateIntervalMs;
+        }
+
+        public void setLodNearbyRadius(int lodNearbyRadius) {
+            this.lodNearbyRadius = lodNearbyRadius;
         }
     }
 

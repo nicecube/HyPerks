@@ -1,0 +1,19 @@
+﻿{
+    "Model":  "Server/Models/HyPerksVFX/Premium/StormClouds/StormClouds_Rig_Core.blockymodel",
+    "Texture":  "Server/Models/HyPerksVFX/Premium/StormClouds/StormClouds_Atlas.png",
+    "EyeHeight":  2.1,
+    "HitBox":  {
+                   "Max":  {
+                               "X":  0.7,
+                               "Y":  2.4,
+                               "Z":  0.7
+                           },
+                   "Min":  {
+                               "X":  -0.7,
+                               "Y":  0.0,
+                               "Z":  -0.7
+                           }
+               },
+    "MinScale":  0.88,
+    "MaxScale":  0.88
+}

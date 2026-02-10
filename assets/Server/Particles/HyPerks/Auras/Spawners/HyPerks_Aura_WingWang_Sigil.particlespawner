@@ -1,0 +1,56 @@
+{
+  "EmitOffset": {
+    "X": { "Min": -0.06, "Max": 0.06 },
+    "Y": { "Min": -0.05, "Max": 0.06 },
+    "Z": { "Min": -0.06, "Max": 0.06 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0.96,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 8,
+  "ParticleLifeSpan": { "Min": 0.8, "Max": 1.2 },
+  "SpawnRate": { "Min": 1, "Max": 2 },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Aura_WingWang_Sigil.png",
+    "FrameSize": { "Width": 64, "Height": 64 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 1.0,
+        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
+        "Color": "#f6f8ff"
+      },
+      "60": {
+        "Opacity": 0.7,
+        "Color": "#d7f6ff"
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": { "X": { "Min": 0.22, "Max": 0.22 } },
+        "Color": "#ffd9ff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": { "X": { "Min": 0.1, "Max": 0.17 } },
+      "Opacity": 0.95,
+      "Rotation": { "Z": { "Min": -180, "Max": 180 } }
+    }
+  },
+  "SpawnBurst": false,
+  "Attractors": [
+    {
+      "Position": { "X": 0, "Y": 0, "Z": 0 },
+      "LinearAcceleration": { "X": 0, "Y": 0.04, "Z": 0 },
+      "DampingMultiplier": { "X": 0.92, "Y": 0.92, "Z": 0.92 }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": { "Min": -180, "Max": 180 },
+    "Pitch": { "Min": 78, "Max": 90 },
+    "Speed": { "Min": 0.0, "Max": 0.04 }
+  }
+}

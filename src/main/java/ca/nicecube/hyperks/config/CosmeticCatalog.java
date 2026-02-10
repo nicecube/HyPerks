@@ -34,6 +34,38 @@ public class CosmeticCatalog {
             "Server/Particles/HyPerks/Auras/Heart_Bloom.particlesystem",
             "hearts"
         ));
+        catalog.cosmetics.add(cModel(
+            "fire_ice_cone",
+            "auras",
+            "Server/Particles/HyPerks/Auras/Fire_Ice_Cone.particlesystem",
+            "cone",
+            "Server/Models/HyPerksVFX/FireIceCone_Rig.json",
+            "fire_ice_cone"
+        ));
+        catalog.cosmetics.add(cModel(
+            "storm_clouds",
+            "auras",
+            "Server/Particles/HyPerks/Auras/Storm_Clouds.particlesystem",
+            "storm",
+            "Server/Models/HyPerksVFX/StormClouds_Rig.json",
+            "storm_clouds"
+        ));
+        catalog.cosmetics.add(cModel(
+            "wingwang_sigil",
+            "auras",
+            "Server/Particles/HyPerks/Auras/WingWang_Sigil.particlesystem",
+            "sigil",
+            "Server/Models/HyPerksVFX/WingWangSigil_Rig.json",
+            "wingwang_sigil"
+        ));
+        catalog.cosmetics.add(cModel(
+            "fireworks_show",
+            "auras",
+            "Server/Particles/HyPerks/Auras/Fireworks_Show.particlesystem",
+            "fireworks",
+            "Server/Models/HyPerksVFX/FireworksShow_Rig.json",
+            "fireworks_show"
+        ));
 
         catalog.cosmetics.add(c(
             "vip_aura",
@@ -360,6 +392,27 @@ public class CosmeticCatalog {
 
     private static CosmeticDefinition c(String id, String category, String effectId, String renderStyle) {
         CosmeticDefinition definition = new CosmeticDefinition(id, category, effectId, renderStyle);
+        definition.normalize();
+        return definition;
+    }
+
+    private static CosmeticDefinition cModel(
+        String id,
+        String category,
+        String effectId,
+        String renderStyle,
+        String modelAssetId,
+        String rigProfile
+    ) {
+        CosmeticDefinition definition = new CosmeticDefinition(
+            id,
+            category,
+            effectId,
+            renderStyle,
+            "model3d",
+            modelAssetId,
+            rigProfile
+        );
         definition.normalize();
         return definition;
     }

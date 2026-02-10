@@ -1,0 +1,56 @@
+{
+  "EmitOffset": {
+    "X": { "Min": -0.08, "Max": 0.08 },
+    "Y": { "Min": -0.06, "Max": 0.08 },
+    "Z": { "Min": -0.08, "Max": 0.08 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0.97,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 8,
+  "ParticleLifeSpan": { "Min": 0.75, "Max": 1.1 },
+  "SpawnRate": { "Min": 1, "Max": 2 },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Aura_FireIce_Cone.png",
+    "FrameSize": { "Width": 64, "Height": 64 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 1.0,
+        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
+        "Color": "#ff9a4d"
+      },
+      "55": {
+        "Opacity": 0.72,
+        "Color": "#ffd7b5"
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": { "X": { "Min": 0.2, "Max": 0.2 } },
+        "Color": "#7adfff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": { "X": { "Min": 0.09, "Max": 0.16 } },
+      "Opacity": 0.96,
+      "Rotation": { "Z": { "Min": -180, "Max": 180 } }
+    }
+  },
+  "SpawnBurst": false,
+  "Attractors": [
+    {
+      "Position": { "X": 0, "Y": 0, "Z": 0 },
+      "LinearAcceleration": { "X": 0, "Y": 0.06, "Z": 0 },
+      "DampingMultiplier": { "X": 0.9, "Y": 0.92, "Z": 0.9 }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": { "Min": -180, "Max": 180 },
+    "Pitch": { "Min": 76, "Max": 90 },
+    "Speed": { "Min": 0.0, "Max": 0.04 }
+  }
+}

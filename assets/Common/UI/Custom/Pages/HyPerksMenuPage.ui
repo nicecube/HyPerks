@@ -88,6 +88,46 @@ Group {
         FlexWeight: 1;
         LayoutMode: TopScrolling;
       }
+
+      Group {
+        Anchor: (Height: 44, Top: 8);
+        LayoutMode: Left;
+
+        Button #ClearAllButton {
+          Anchor: (Width: 240, Height: 34, Right: 12);
+          Padding: (Full: 6);
+          Background: (Color: #2a1020(0.9));
+          Style: (
+            Hovered: (
+              Background: #402038(0.95)
+            ),
+            Pressed: (
+              Background: #5a2f4d(0.98)
+            )
+          );
+
+          Label #Text {
+            Text: "CLEAR ALL EFFECTS";
+            Style: (
+              RenderUppercase: true,
+              RenderBold: true,
+              FontSize: 11,
+              HorizontalAlignment: Center,
+              VerticalAlignment: Center,
+              TextColor: #ffd9ea
+            );
+          }
+        }
+
+        Label {
+          Text: "Toggle cosmetics from the list, then use Clear All for a full reset.";
+          Style: (
+            FontSize: 10,
+            TextColor: #ffffff(0.52),
+            VerticalAlignment: Center
+          );
+        }
+      }
     }
   }
 }

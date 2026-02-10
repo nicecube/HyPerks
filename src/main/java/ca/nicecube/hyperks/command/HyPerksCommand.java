@@ -55,9 +55,13 @@ public class HyPerksCommand extends AbstractCommand {
                     this.coreService.unequip(context, first);
                 }
             }
+            case "clear", "clearall" -> this.coreService.clearAll(context);
             case "active" -> this.coreService.showActive(context);
             case "status" -> this.coreService.showStatus(context);
             case "refreshperms" -> this.coreService.refreshPermissionCache(context);
+            case "debugmodel" -> this.coreService.debugModel(context, first);
+            case "debugmodels" -> this.coreService.debugModels(context, first);
+            case "modelvfx" -> this.coreService.modelVfx(context, first, second);
             case "lang" -> {
                 if (first == null) {
                     this.coreService.send(context, "error.usage", "/hyperks lang <en|fr>");

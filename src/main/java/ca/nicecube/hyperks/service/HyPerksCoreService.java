@@ -6,16 +6,22 @@ import ca.nicecube.hyperks.config.HyPerksConfig;
 import ca.nicecube.hyperks.model.CosmeticCategory;
 import ca.nicecube.hyperks.model.PlayerState;
 import ca.nicecube.hyperks.ui.HyPerksMenuPage;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.event.events.player.AddPlayerToWorldEvent;
+import com.hypixel.hytale.server.core.event.events.player.DrainPlayerFromWorldEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -39,17 +45,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class HyPerksCoreService {
     private static final String PARTICLE_EXTENSION = ".particlesystem";
     private static final String UNRESOLVED_EFFECT_ID = "";
-    private static final String RENDER_THREAD_NAME = "HyPerks-Renderer";
+    private static final String DEFAULT_DEBUG_MODEL = "Server/Models/HyPerksVFX/FireIceCone_Rig.json";
 
     private static final Set<CosmeticCategory> MULTI_ACTIVE_CATEGORIES = Set.of(
         CosmeticCategory.FLOATING_BADGES,
@@ -68,6 +71,7 @@ public class HyPerksCoreService {
     private final LocalizationService localizationService;
     private final JsonConfigStore configStore;
     private final PlayerStateService playerStateService;
+    private final ModelVfxRigService modelVfxRigService;
 
     private volatile HyPerksConfig config = HyPerksConfig.defaults();
     private volatile CosmeticCatalog catalog = CosmeticCatalog.defaults();
@@ -80,10 +84,11 @@ public class HyPerksCoreService {
     private final Map<UUID, Long> commandUsageTracker = new ConcurrentHashMap<>();
     private final Map<PermissionCacheKey, PermissionCacheValue> permissionCache = new ConcurrentHashMap<>();
     private final AtomicLong renderFrame = new AtomicLong(0L);
+    private final AtomicLong modelRenderFrame = new AtomicLong(0L);
 
     private volatile boolean runtimeManaged = false;
-    private ScheduledExecutorService runtimeExecutor;
     private ScheduledFuture<?> runtimeTask;
+    private ScheduledFuture<?> modelRuntimeTask;
 
     public HyPerksCoreService(
         HytaleLogger logger,
@@ -97,6 +102,7 @@ public class HyPerksCoreService {
         this.localizationService = localizationService;
         this.configStore = configStore;
         this.playerStateService = playerStateService;
+        this.modelVfxRigService = new ModelVfxRigService(logger);
     }
 
     public synchronized void reload() {
@@ -121,15 +127,25 @@ public class HyPerksCoreService {
         this.failedSpawnWarnings.clear();
         this.commandUsageTracker.clear();
         this.permissionCache.clear();
+        this.modelVfxRigService.clearAllRigs();
+        this.modelVfxRigService.clearCaches();
+        this.modelVfxRigService.configure(
+            this.config.getModelVfx().getMaxRigsPerPlayer(),
+            this.config.getModelVfx().getLodUltraMaxWorldPlayers()
+        );
 
         this.logger.atInfo().log(
-            "[HyPerks] Reloaded: cosmetics=%s, categories=%s, runtime=%s (%sms), cooldown=%sms, permCacheTtl=%sms, worlds=%s",
+            "[HyPerks] Reloaded: cosmetics=%s, categories=%s, runtime=%s (%sms), modelRuntime=%sms, modelLodRadius=%s, cooldown=%sms, permCacheTtl=%sms, modelRigBudget=%s, lodUltraMaxPlayers=%s, worlds=%s",
             this.catalog.getCosmetics().size(),
             this.byCategory.size(),
             this.config.isRuntimeRenderingEnabled(),
             this.config.getRuntimeRenderIntervalMs(),
+            this.config.getModelVfx().getUpdateIntervalMs(),
+            this.config.getModelVfx().getLodNearbyRadius(),
             this.config.getCommandCooldownMs(),
             this.config.getPermissionCacheTtlMs(),
+            this.modelVfxRigService.getRigBudgetPerPlayer(),
+            this.modelVfxRigService.getLodUltraMaxPlayers(),
             this.config.isAllowInAllWorlds() ? "*" : this.config.getWorldWhitelist()
         );
         this.logger.atInfo().log("[HyPerks] Persistence: %s", this.playerStateService.getStoreDescription());
@@ -162,6 +178,11 @@ public class HyPerksCoreService {
         return task != null && !task.isCancelled() && !task.isDone();
     }
 
+    public boolean isModelRuntimeRunning() {
+        ScheduledFuture<?> task = this.modelRuntimeTask;
+        return task != null && !task.isCancelled() && !task.isDone();
+    }
+
     public void showMenu(CommandContext context) {
         if (this.config.getMenu().isGuiEnabled() && context.isPlayer()) {
             Player player = context.senderAs(Player.class);
@@ -186,9 +207,13 @@ public class HyPerksCoreService {
         send(context, "cmd.menu.line", "list [category]");
         send(context, "cmd.menu.line", "equip <category> <cosmeticId>");
         send(context, "cmd.menu.line", "unequip <category>");
+        send(context, "cmd.menu.line", "clear");
         send(context, "cmd.menu.line", "active");
         send(context, "cmd.menu.line", "lang <en|fr>");
         send(context, "cmd.menu.line", "refreshperms");
+        send(context, "cmd.menu.line", "debugmodel [modelAssetId]");
+        send(context, "cmd.menu.line", "debugmodels [search]");
+        send(context, "cmd.menu.line", "modelvfx <show|budget|lodultra|radius|interval|audit|density> [value]");
         send(context, "cmd.menu.line", "status");
         send(context, "cmd.menu.line", "reload");
         send(context, "cmd.menu.example");
@@ -252,6 +277,13 @@ public class HyPerksCoreService {
         send(context, "cmd.status.permission_cache_entries", this.permissionCache.size());
         send(context, "cmd.status.player_cache_entries", this.playerStateService.getCachedProfileCount());
         send(context, "cmd.status.cosmetics_loaded", this.catalog.getCosmetics().size());
+        send(context, "cmd.status.model_rig_players", this.modelVfxRigService.getActiveRigPlayerCount());
+        send(context, "cmd.status.model_rigs", this.modelVfxRigService.getActiveRigCount());
+        send(context, "cmd.status.model_rig_budget", this.modelVfxRigService.getRigBudgetPerPlayer());
+        send(context, "cmd.status.model_lod_ultra_max_players", this.modelVfxRigService.getLodUltraMaxPlayers());
+        send(context, "cmd.status.model_lod_radius", this.config.getModelVfx().getLodNearbyRadius());
+        send(context, "cmd.status.model_update_interval", this.config.getModelVfx().getUpdateIntervalMs());
+        send(context, "cmd.status.model_runtime_active", this.isModelRuntimeRunning());
         send(context, "cmd.status.persistence", this.playerStateService.getStoreDescription());
         send(
             context,
@@ -300,13 +332,16 @@ public class HyPerksCoreService {
                 context,
                 String.format(
                     Locale.ROOT,
-                    "- [%s] %s (%s/%s) -> %s | style=%s | fx=%s",
+                    "- [%s] %s (%s/%s) -> %s | backend=%s | style=%s | model=%s | profile=%s | fx=%s",
                     lockText,
                     cosmeticName,
                     cosmetic.getCategory(),
                     cosmetic.getId(),
                     cosmetic.getPermission(),
+                    cosmetic.getRenderBackend(),
                     cosmetic.getRenderStyle(),
+                    cosmetic.getModelAssetId(),
+                    cosmetic.getRigProfile(),
                     cosmetic.getEffectId()
                 )
             );
@@ -359,6 +394,7 @@ public class HyPerksCoreService {
         if (supportsMultiActive(category)) {
             state.addActive(category.getId(), cosmetic.getId());
         } else {
+            this.modelVfxRigService.clearCategoryRigs(playerUuid, category.getId());
             state.setActive(category.getId(), cosmetic.getId());
         }
         this.playerStateService.save(playerUuid);
@@ -381,7 +417,39 @@ public class HyPerksCoreService {
         PlayerState state = this.playerStateService.get(playerUuid);
         state.removeActive(category.getId());
         this.playerStateService.save(playerUuid);
+        this.modelVfxRigService.clearCategoryRigs(playerUuid, category.getId());
         send(context, "cmd.unequip.success", category.getId());
+    }
+
+    public void clearAll(CommandContext context) {
+        if (!context.isPlayer()) {
+            send(context, "error.player_only");
+            return;
+        }
+
+        UUID playerUuid = context.sender().getUuid();
+        PlayerState state = this.playerStateService.get(playerUuid);
+        clearAllActiveCosmetics(state);
+        this.playerStateService.save(playerUuid);
+        this.modelVfxRigService.clearPlayerRigs(playerUuid);
+        send(context, "cmd.clearall.success");
+    }
+
+    public void clearAllFromMenu(Player player) {
+        if (player == null || player.wasRemoved()) {
+            return;
+        }
+
+        UUID playerUuid = resolvePlayerUuid(player);
+        if (playerUuid == null) {
+            return;
+        }
+
+        PlayerState state = this.playerStateService.get(playerUuid);
+        clearAllActiveCosmetics(state);
+        this.playerStateService.save(playerUuid);
+        this.modelVfxRigService.clearPlayerRigs(playerUuid);
+        player.sendMessage(Message.raw(tr(player, "cmd.clearall.success")));
     }
 
     public void showActive(CommandContext context) {
@@ -554,6 +622,7 @@ public class HyPerksCoreService {
                 state.removeActive(category.getId());
             }
             this.playerStateService.save(playerUuid);
+            this.modelVfxRigService.clearCategoryRigs(playerUuid, category.getId());
             player.sendMessage(Message.raw(tr(player, "cmd.menu.toggled_off", tr(player, cosmetic.getNameKey()))));
             return;
         }
@@ -561,6 +630,7 @@ public class HyPerksCoreService {
         if (supportsMultiActive(category)) {
             state.addActive(category.getId(), cosmetic.getId());
         } else {
+            this.modelVfxRigService.clearCategoryRigs(playerUuid, category.getId());
             state.setActive(category.getId(), cosmetic.getId());
         }
         this.playerStateService.save(playerUuid);
@@ -650,6 +720,337 @@ public class HyPerksCoreService {
         send(context, "cmd.permission_refresh.self");
     }
 
+    public void debugModel(CommandContext context, String modelAssetIdCandidate) {
+        if (!context.isPlayer()) {
+            send(context, "error.player_only");
+            return;
+        }
+
+        if (!context.sender().hasPermission("hyperks.admin.debugmodel")) {
+            send(context, "error.no_permission");
+            return;
+        }
+
+        Player player = context.senderAs(Player.class);
+        if (player == null || player.wasRemoved()) {
+            send(context, "cmd.debugmodel.unavailable");
+            return;
+        }
+
+        World world = player.getWorld();
+        Ref<EntityStore> playerRef = player.getReference();
+        if (world == null || !world.isAlive() || playerRef == null) {
+            send(context, "cmd.debugmodel.unavailable");
+            return;
+        }
+
+        String requestedModelAssetId = normalizeEffectId(
+            modelAssetIdCandidate == null || modelAssetIdCandidate.isBlank()
+                ? DEFAULT_DEBUG_MODEL
+                : modelAssetIdCandidate
+        );
+
+        world.execute(() -> {
+            Store<EntityStore> store = world.getEntityStore().getStore();
+            TransformComponent transform = store.getComponent(playerRef, TransformComponent.getComponentType());
+            if (transform == null || transform.getPosition() == null) {
+                player.sendMessage(Message.raw(tr(player, "cmd.debugmodel.unavailable")));
+                return;
+            }
+
+            ModelVfxRigService.DebugSpawnResult result = this.modelVfxRigService.spawnDebugRig(
+                world,
+                store,
+                new Vector3d(transform.getPosition()),
+                transform.getRotation() == null ? new Vector3f(0F, 0F, 0F) : new Vector3f(transform.getRotation()),
+                requestedModelAssetId
+            );
+
+            if (result.isSuccess()) {
+                player.sendMessage(Message.raw(tr(player, "cmd.debugmodel.spawned", result.getResolvedModelAssetId())));
+            } else {
+                player.sendMessage(Message.raw(tr(player, "cmd.debugmodel.failed", requestedModelAssetId)));
+            }
+        });
+    }
+
+    public void debugModels(CommandContext context, String searchQuery) {
+        if (!context.sender().hasPermission("hyperks.admin.debugmodel")) {
+            send(context, "error.no_permission");
+            return;
+        }
+
+        String filter = searchQuery == null ? "" : searchQuery.trim().toLowerCase(Locale.ROOT);
+        List<String> ids = new ArrayList<>(ModelAsset.getAssetMap().getAssetMap().keySet());
+        ids.sort(String::compareTo);
+
+        int shown = 0;
+        int total = 0;
+        for (String id : ids) {
+            if (id == null || id.isBlank()) {
+                continue;
+            }
+
+            String normalized = normalizeEffectId(id);
+            if (!filter.isBlank() && !normalized.toLowerCase(Locale.ROOT).contains(filter)) {
+                continue;
+            }
+
+            total++;
+            if (shown < 40) {
+                sendRaw(context, "- " + normalized);
+                shown++;
+            }
+        }
+
+        send(context, "cmd.debugmodels.result", total, shown, filter.isBlank() ? "*" : filter);
+    }
+
+    public void modelVfx(CommandContext context, String option, String value) {
+        if (!context.sender().hasPermission("hyperks.admin.modelvfx") && !canReload(context.sender())) {
+            send(context, "error.no_permission");
+            return;
+        }
+
+        HyPerksConfig.ModelVfxConfig modelVfxConfig = this.config.getModelVfx();
+        if (option == null || option.isBlank() || "show".equalsIgnoreCase(option) || "status".equalsIgnoreCase(option)) {
+            send(
+                context,
+                "cmd.modelvfx.current",
+                modelVfxConfig.getMaxRigsPerPlayer(),
+                modelVfxConfig.getLodUltraMaxWorldPlayers(),
+                modelVfxConfig.getLodNearbyRadius(),
+                modelVfxConfig.getUpdateIntervalMs()
+            );
+            send(context, "cmd.modelvfx.usage");
+            return;
+        }
+
+        String normalizedOption = option.trim().toLowerCase(Locale.ROOT);
+        if ("audit".equals(normalizedOption) || "check".equals(normalizedOption) || "validate".equals(normalizedOption)) {
+            auditModelVfx(context);
+            return;
+        }
+        if ("density".equals(normalizedOption) || "nearby".equals(normalizedOption)) {
+            modelVfxDensity(context);
+            return;
+        }
+
+        if (value == null || value.isBlank()) {
+            send(context, "cmd.modelvfx.usage");
+            return;
+        }
+
+        int parsedValue;
+        try {
+            parsedValue = Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            send(context, "cmd.modelvfx.invalid", value);
+            send(context, "cmd.modelvfx.usage");
+            return;
+        }
+
+        boolean updated = false;
+        String updatedKey = "";
+        if ("budget".equals(normalizedOption) || "maxrigs".equals(normalizedOption) || "max_rigs".equals(normalizedOption)) {
+            modelVfxConfig.setMaxRigsPerPlayer(parsedValue);
+            updated = true;
+            updatedKey = "maxRigsPerPlayer";
+        } else if ("lodultra".equals(normalizedOption) || "lod_ultra".equals(normalizedOption) || "lod".equals(normalizedOption)) {
+            modelVfxConfig.setLodUltraMaxWorldPlayers(parsedValue);
+            updated = true;
+            updatedKey = "lodUltraMaxWorldPlayers";
+        } else if ("radius".equals(normalizedOption) || "lodradius".equals(normalizedOption) || "lod_radius".equals(normalizedOption)) {
+            modelVfxConfig.setLodNearbyRadius(parsedValue);
+            updated = true;
+            updatedKey = "lodNearbyRadius";
+        } else if ("interval".equals(normalizedOption) || "tick".equals(normalizedOption) || "updateinterval".equals(normalizedOption)) {
+            modelVfxConfig.setUpdateIntervalMs(parsedValue);
+            updated = true;
+            updatedKey = "updateIntervalMs";
+        }
+
+        if (!updated) {
+            send(context, "cmd.modelvfx.usage");
+            return;
+        }
+
+        modelVfxConfig.normalize();
+        this.modelVfxRigService.configure(
+            modelVfxConfig.getMaxRigsPerPlayer(),
+            modelVfxConfig.getLodUltraMaxWorldPlayers()
+        );
+        this.configStore.save(this.paths.getConfigPath(), this.config);
+        if (this.runtimeManaged) {
+            restartRuntimeRenderer();
+        }
+
+        if ("maxRigsPerPlayer".equals(updatedKey)) {
+            send(context, "cmd.modelvfx.updated", updatedKey, modelVfxConfig.getMaxRigsPerPlayer());
+        } else if ("lodUltraMaxWorldPlayers".equals(updatedKey)) {
+            send(context, "cmd.modelvfx.updated", updatedKey, modelVfxConfig.getLodUltraMaxWorldPlayers());
+        } else if ("lodNearbyRadius".equals(updatedKey)) {
+            send(context, "cmd.modelvfx.updated", updatedKey, modelVfxConfig.getLodNearbyRadius());
+        } else {
+            send(context, "cmd.modelvfx.updated", updatedKey, modelVfxConfig.getUpdateIntervalMs());
+        }
+        send(
+            context,
+            "cmd.modelvfx.current",
+            modelVfxConfig.getMaxRigsPerPlayer(),
+            modelVfxConfig.getLodUltraMaxWorldPlayers(),
+            modelVfxConfig.getLodNearbyRadius(),
+            modelVfxConfig.getUpdateIntervalMs()
+        );
+    }
+
+    private void auditModelVfx(CommandContext context) {
+        List<CosmeticDefinition> cosmetics = this.catalog.getCosmetics();
+        if (cosmetics == null || cosmetics.isEmpty()) {
+            send(context, "cmd.modelvfx.audit.empty");
+            return;
+        }
+
+        int modelCosmetics = 0;
+        int partChecks = 0;
+        int resolved = 0;
+        int missing = 0;
+        int shown = 0;
+        int maxLines = 80;
+        send(context, "cmd.modelvfx.audit.header");
+
+        for (CosmeticDefinition cosmetic : cosmetics) {
+            if (cosmetic == null || !cosmetic.isEnabled() || !cosmetic.isModel3dBackend()) {
+                continue;
+            }
+
+            modelCosmetics++;
+            for (boolean ultraTier : new boolean[] { false, true }) {
+                String tierLabel = ultraTier ? "ULTRA" : "BALANCED";
+                List<ModelVfxRigService.AuditPart> parts = this.modelVfxRigService.describeAuditParts(
+                    cosmetic.getCategory(),
+                    cosmetic.getId(),
+                    cosmetic.getModelAssetId(),
+                    cosmetic.getRigProfile(),
+                    ultraTier
+                );
+
+                if (parts.isEmpty()) {
+                    partChecks++;
+                    missing++;
+                    if (shown < maxLines) {
+                        sendRaw(
+                            context,
+                            "- " + cosmetic.getCategory()
+                                + "/" + cosmetic.getId()
+                                + " [" + tierLabel + ":main] "
+                                + normalizeEffectId(cosmetic.getModelAssetId())
+                                + " -> MISSING"
+                        );
+                        shown++;
+                    }
+                    continue;
+                }
+
+                for (ModelVfxRigService.AuditPart part : parts) {
+                    partChecks++;
+                    if (part.isResolvable()) {
+                        resolved++;
+                    } else {
+                        missing++;
+                    }
+
+                    if (shown < maxLines) {
+                        String resolvedValue = part.isResolvable() ? normalizeEffectId(part.getResolvedModelAssetId()) : "MISSING";
+                        sendRaw(
+                            context,
+                            "- " + cosmetic.getCategory()
+                                + "/" + cosmetic.getId()
+                                + " [" + tierLabel + ":" + part.getPartId() + "] "
+                                + normalizeEffectId(part.getRequestedModelAssetId())
+                                + " -> " + resolvedValue
+                        );
+                        shown++;
+                    }
+                }
+            }
+        }
+
+        if (modelCosmetics <= 0) {
+            send(context, "cmd.modelvfx.audit.empty");
+            return;
+        }
+
+        send(context, "cmd.modelvfx.audit.summary", modelCosmetics, partChecks, resolved, missing, shown);
+        if (partChecks > shown) {
+            send(context, "cmd.modelvfx.audit.truncated", partChecks - shown);
+        }
+    }
+
+    private void modelVfxDensity(CommandContext context) {
+        if (context == null || !context.isPlayer()) {
+            send(context, "cmd.modelvfx.density.player_only");
+            return;
+        }
+
+        Player player = context.senderAs(Player.class);
+        if (player == null || player.wasRemoved() || player.getWorld() == null || !player.getWorld().isAlive() || player.getReference() == null) {
+            send(context, "cmd.modelvfx.density.unavailable");
+            return;
+        }
+
+        World world = player.getWorld();
+        Ref<EntityStore> playerReference = player.getReference();
+        int radius = this.config.getModelVfx().getLodNearbyRadius();
+        double radiusSquared = radius * (double) radius;
+
+        world.execute(() -> {
+            try {
+                Store<EntityStore> store = world.getEntityStore().getStore();
+                TransformComponent sourceTransform = store.getComponent(playerReference, TransformComponent.getComponentType());
+                if (sourceTransform == null || sourceTransform.getPosition() == null) {
+                    player.sendMessage(Message.raw(tr(player, "cmd.modelvfx.density.unavailable")));
+                    return;
+                }
+
+                Vector3d sourcePosition = new Vector3d(sourceTransform.getPosition());
+                int nearby = 0;
+                int total = 0;
+                for (PlayerRef candidateRef : world.getPlayerRefs()) {
+                    if (candidateRef == null || !candidateRef.isValid() || candidateRef.getReference() == null) {
+                        continue;
+                    }
+
+                    Player candidate = store.getComponent(candidateRef.getReference(), Player.getComponentType());
+                    if (candidate == null || candidate.wasRemoved()) {
+                        continue;
+                    }
+
+                    TransformComponent candidateTransform = store.getComponent(candidateRef.getReference(), TransformComponent.getComponentType());
+                    if (candidateTransform == null || candidateTransform.getPosition() == null) {
+                        continue;
+                    }
+
+                    total++;
+                    Vector3d candidatePosition = candidateTransform.getPosition();
+                    double dx = sourcePosition.x - candidatePosition.x;
+                    double dy = sourcePosition.y - candidatePosition.y;
+                    double dz = sourcePosition.z - candidatePosition.z;
+                    if ((dx * dx) + (dy * dy) + (dz * dz) <= radiusSquared) {
+                        nearby++;
+                    }
+                }
+
+                player.sendMessage(Message.raw(tr(player, "cmd.modelvfx.density", nearby, total, radius)));
+            } catch (Exception ex) {
+                if (this.config.isDebugMode()) {
+                    this.logger.atFine().withCause(ex).log("[HyPerks] modelvfx density failed.");
+                }
+                player.sendMessage(Message.raw(tr(player, "cmd.modelvfx.density.unavailable")));
+            }
+        });
+    }
+
     public void onPlayerReady(PlayerReadyEvent event) {
         Player player = event.getPlayer();
         if (player == null) {
@@ -675,6 +1076,7 @@ public class HyPerksCoreService {
                 return;
             }
 
+            this.modelVfxRigService.clearPlayerRigs(playerUuid);
             invalidatePermissionCache(playerUuid);
             this.playerStateService.invalidate(playerUuid);
             PlayerState state = this.playerStateService.refresh(playerUuid);
@@ -696,6 +1098,42 @@ public class HyPerksCoreService {
                 );
             }
         });
+    }
+
+    public void onPlayerDisconnect(PlayerDisconnectEvent event) {
+        if (event == null || event.getPlayerRef() == null) {
+            return;
+        }
+
+        UUID playerUuid = event.getPlayerRef().getUuid();
+        if (playerUuid == null) {
+            return;
+        }
+
+        this.modelVfxRigService.clearPlayerRigs(playerUuid);
+        this.renderTrackers.remove(playerUuid);
+        this.commandUsageTracker.remove(playerUuid);
+        invalidatePermissionCache(playerUuid);
+    }
+
+    public void onDrainPlayerFromWorld(DrainPlayerFromWorldEvent event) {
+        UUID playerUuid = resolvePlayerUuidFromHolder(event == null ? null : event.getHolder());
+        if (playerUuid == null) {
+            return;
+        }
+
+        this.modelVfxRigService.clearPlayerRigs(playerUuid);
+        this.renderTrackers.remove(playerUuid);
+    }
+
+    public void onAddPlayerToWorld(AddPlayerToWorldEvent event) {
+        UUID playerUuid = resolvePlayerUuidFromHolder(event == null ? null : event.getHolder());
+        if (playerUuid == null) {
+            return;
+        }
+
+        // Reset previous world rig refs; next render tick respawns in target world.
+        this.modelVfxRigService.clearPlayerRigs(playerUuid);
     }
 
     public boolean canReload(CommandSender sender) {
@@ -723,15 +1161,22 @@ public class HyPerksCoreService {
         }
 
         int intervalMs = this.config.getRuntimeRenderIntervalMs();
-        this.runtimeExecutor = Executors.newSingleThreadScheduledExecutor(new RenderThreadFactory());
-        this.runtimeTask = this.runtimeExecutor.scheduleAtFixedRate(
+        this.runtimeTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(
             this::tickRuntimeRendererSafe,
             intervalMs,
             intervalMs,
             TimeUnit.MILLISECONDS
         );
 
-        this.logger.atInfo().log("[HyPerks] Runtime renderer started (%sms).", intervalMs);
+        int modelIntervalMs = this.config.getModelVfx().getUpdateIntervalMs();
+        this.modelRuntimeTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(
+            this::tickModelRuntimeRendererSafe,
+            modelIntervalMs,
+            modelIntervalMs,
+            TimeUnit.MILLISECONDS
+        );
+
+        this.logger.atInfo().log("[HyPerks] Runtime renderer started: particles=%sms, models=%sms.", intervalMs, modelIntervalMs);
     }
 
     private synchronized void stopRuntimeRendererInternal() {
@@ -739,18 +1184,13 @@ public class HyPerksCoreService {
             this.runtimeTask.cancel(false);
             this.runtimeTask = null;
         }
-
-        if (this.runtimeExecutor != null) {
-            this.runtimeExecutor.shutdownNow();
-            try {
-                this.runtimeExecutor.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-            this.runtimeExecutor = null;
+        if (this.modelRuntimeTask != null) {
+            this.modelRuntimeTask.cancel(false);
+            this.modelRuntimeTask = null;
         }
 
         this.renderTrackers.clear();
+        this.modelVfxRigService.clearAllRigs();
     }
 
     private void tickRuntimeRendererSafe() {
@@ -758,6 +1198,14 @@ public class HyPerksCoreService {
             tickRuntimeRenderer();
         } catch (Exception ex) {
             this.logger.atWarning().withCause(ex).log("[HyPerks] Runtime render tick failed.");
+        }
+    }
+
+    private void tickModelRuntimeRendererSafe() {
+        try {
+            tickModelRuntimeRenderer();
+        } catch (Exception ex) {
+            this.logger.atWarning().withCause(ex).log("[HyPerks] Model runtime tick failed.");
         }
     }
 
@@ -773,6 +1221,7 @@ public class HyPerksCoreService {
             pruneOldTrackers(nowMs);
             pruneOldCommandTrackers(nowMs);
             prunePermissionCache(nowMs);
+            this.modelVfxRigService.pruneStaleRigs(nowMs);
         }
 
         Collection<World> worlds = new ArrayList<>(universe.getWorlds().values());
@@ -789,16 +1238,172 @@ public class HyPerksCoreService {
         }
     }
 
+    private void tickModelRuntimeRenderer() {
+        Universe universe = Universe.get();
+        if (universe == null) {
+            return;
+        }
+
+        long frame = this.modelRenderFrame.incrementAndGet();
+        if (frame % 200L == 0L) {
+            this.modelVfxRigService.pruneStaleRigs(System.currentTimeMillis());
+        }
+
+        Collection<World> worlds = new ArrayList<>(universe.getWorlds().values());
+        for (World world : worlds) {
+            if (world == null || !world.isAlive() || world.getPlayerCount() <= 0) {
+                continue;
+            }
+
+            if (!this.config.isWorldAllowed(world.getName())) {
+                continue;
+            }
+
+            world.execute(() -> renderWorldModels(world, frame));
+        }
+    }
+
     private void renderWorld(World world, long frame) {
         Store<EntityStore> store = world.getEntityStore().getStore();
         long nowMs = System.currentTimeMillis();
 
         for (PlayerRef playerRef : world.getPlayerRefs()) {
-            renderPlayer(store, playerRef, frame, nowMs);
+            renderPlayer(world, store, playerRef, frame, nowMs);
         }
     }
 
-    private void renderPlayer(Store<EntityStore> store, PlayerRef playerRef, long frame, long nowMs) {
+    private void renderWorldModels(World world, long frame) {
+        Store<EntityStore> store = world.getEntityStore().getStore();
+        long nowMs = System.currentTimeMillis();
+
+        List<ModelRenderContext> contexts = collectModelRenderContexts(store, world.getPlayerRefs());
+        if (contexts.isEmpty()) {
+            return;
+        }
+
+        double lodRadius = this.config.getModelVfx().getLodNearbyRadius();
+        double lodRadiusSquared = lodRadius * lodRadius;
+        Map<ModelLodCellKey, List<Integer>> spatialIndex = buildModelLodSpatialIndex(contexts, lodRadius);
+        for (int index = 0; index < contexts.size(); index++) {
+            ModelRenderContext context = contexts.get(index);
+            int nearbyPlayers = resolveNearbyPlayers(contexts, spatialIndex, index, lodRadius, lodRadiusSquared);
+            renderPlayerModels(world, store, context, nearbyPlayers, frame, nowMs);
+        }
+    }
+
+    private List<ModelRenderContext> collectModelRenderContexts(Store<EntityStore> store, Collection<PlayerRef> playerRefs) {
+        if (store == null || playerRefs == null || playerRefs.isEmpty()) {
+            return List.of();
+        }
+
+        List<ModelRenderContext> contexts = new ArrayList<>();
+        for (PlayerRef playerRef : playerRefs) {
+            if (playerRef == null || !playerRef.isValid() || playerRef.getReference() == null) {
+                continue;
+            }
+
+            Player player = store.getComponent(playerRef.getReference(), Player.getComponentType());
+            if (player == null || player.wasRemoved()) {
+                continue;
+            }
+
+            UUID playerUuid = playerRef.getUuid();
+            if (playerUuid == null) {
+                continue;
+            }
+
+            TransformComponent transform = store.getComponent(playerRef.getReference(), TransformComponent.getComponentType());
+            if (transform == null || transform.getPosition() == null) {
+                continue;
+            }
+
+            Vector3d position = new Vector3d(transform.getPosition());
+            Vector3f rotation = transform.getRotation() == null ? new Vector3f(0F, 0F, 0F) : new Vector3f(transform.getRotation());
+            contexts.add(new ModelRenderContext(playerUuid, player, position, rotation));
+        }
+
+        return contexts;
+    }
+
+    private Map<ModelLodCellKey, List<Integer>> buildModelLodSpatialIndex(List<ModelRenderContext> contexts, double cellSize) {
+        if (contexts == null || contexts.isEmpty()) {
+            return Map.of();
+        }
+
+        double normalizedCellSize = cellSize <= 0.0D ? 1.0D : cellSize;
+        Map<ModelLodCellKey, List<Integer>> index = new HashMap<>();
+        for (int i = 0; i < contexts.size(); i++) {
+            ModelRenderContext context = contexts.get(i);
+            if (context == null || context.position == null) {
+                continue;
+            }
+
+            ModelLodCellKey key = new ModelLodCellKey(
+                toModelLodCell(context.position.x, normalizedCellSize),
+                toModelLodCell(context.position.y, normalizedCellSize),
+                toModelLodCell(context.position.z, normalizedCellSize)
+            );
+            index.computeIfAbsent(key, ignored -> new ArrayList<>()).add(i);
+        }
+
+        return index;
+    }
+
+    private int resolveNearbyPlayers(
+        List<ModelRenderContext> contexts,
+        Map<ModelLodCellKey, List<Integer>> spatialIndex,
+        int sourceIndex,
+        double cellSize,
+        double radiusSquared
+    ) {
+        if (contexts == null || contexts.isEmpty() || sourceIndex < 0 || sourceIndex >= contexts.size()) {
+            return 0;
+        }
+
+        double normalizedCellSize = cellSize <= 0.0D ? 1.0D : cellSize;
+        ModelRenderContext source = contexts.get(sourceIndex);
+        int sourceCellX = toModelLodCell(source.position.x, normalizedCellSize);
+        int sourceCellY = toModelLodCell(source.position.y, normalizedCellSize);
+        int sourceCellZ = toModelLodCell(source.position.z, normalizedCellSize);
+        int nearby = 0;
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    ModelLodCellKey cell = new ModelLodCellKey(sourceCellX + dx, sourceCellY + dy, sourceCellZ + dz);
+                    List<Integer> candidates = spatialIndex.get(cell);
+                    if (candidates == null || candidates.isEmpty()) {
+                        continue;
+                    }
+
+                    for (Integer candidateIndex : candidates) {
+                        if (candidateIndex == null || candidateIndex < 0 || candidateIndex >= contexts.size()) {
+                            continue;
+                        }
+
+                        ModelRenderContext candidate = contexts.get(candidateIndex);
+                        if (candidate == null || candidate.position == null) {
+                            continue;
+                        }
+
+                        double distX = source.position.x - candidate.position.x;
+                        double distY = source.position.y - candidate.position.y;
+                        double distZ = source.position.z - candidate.position.z;
+                        if ((distX * distX) + (distY * distY) + (distZ * distZ) <= radiusSquared) {
+                            nearby++;
+                        }
+                    }
+                }
+            }
+        }
+        return nearby;
+    }
+
+    private int toModelLodCell(double value, double cellSize) {
+        return (int) Math.floor(value / cellSize);
+    }
+
+    private void renderPlayer(World world, Store<EntityStore> store, PlayerRef playerRef, long frame, long nowMs) {
         if (playerRef == null || !playerRef.isValid() || playerRef.getReference() == null) {
             return;
         }
@@ -813,31 +1418,122 @@ public class HyPerksCoreService {
             return;
         }
 
-        PlayerState state = this.playerStateService.get(playerUuid);
-        if (state.getAllActive().isEmpty()) {
-            return;
-        }
-
         TransformComponent transform = store.getComponent(playerRef.getReference(), TransformComponent.getComponentType());
         if (transform == null || transform.getPosition() == null) {
             return;
         }
 
+        PlayerState state = this.playerStateService.get(playerUuid);
         Vector3d position = new Vector3d(transform.getPosition());
-        double yawDegrees = 0.0D;
-        Vector3f rotation = transform.getRotation();
-        if (rotation != null) {
-            yawDegrees = rotation.getYaw();
-        }
+        Vector3f rotation = transform.getRotation() == null ? new Vector3f(0F, 0F, 0F) : new Vector3f(transform.getRotation());
+        double yawDegrees = rotation.getYaw();
         RenderTracker tracker = this.renderTrackers.computeIfAbsent(playerUuid, ignored -> new RenderTracker());
         tracker.lastSeenMs = nowMs;
 
-        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.AURAS);
-        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.AURAS_PREMIUM);
-        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.TRAILS);
-        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.FOOTPRINTS);
-        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.FLOATING_BADGES);
-        renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.TROPHY_BADGES);
+        if (!state.getAllActive().isEmpty()) {
+            renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.AURAS);
+            renderCategory(
+                player,
+                state,
+                store,
+                position,
+                yawDegrees,
+                tracker,
+                nowMs,
+                frame,
+                CosmeticCategory.AURAS_PREMIUM
+            );
+            renderCategory(player, state, store, position, yawDegrees, tracker, nowMs, frame, CosmeticCategory.TRAILS);
+            renderCategory(
+                player,
+                state,
+                store,
+                position,
+                yawDegrees,
+                tracker,
+                nowMs,
+                frame,
+                CosmeticCategory.FOOTPRINTS
+            );
+            renderCategory(
+                player,
+                state,
+                store,
+                position,
+                yawDegrees,
+                tracker,
+                nowMs,
+                frame,
+                CosmeticCategory.FLOATING_BADGES
+            );
+            renderCategory(
+                player,
+                state,
+                store,
+                position,
+                yawDegrees,
+                tracker,
+                nowMs,
+                frame,
+                CosmeticCategory.TROPHY_BADGES
+            );
+        }
+    }
+
+    private void renderPlayerModels(
+        World world,
+        Store<EntityStore> store,
+        ModelRenderContext context,
+        int nearbyPlayers,
+        long frame,
+        long nowMs
+    ) {
+        if (context == null || context.player == null || context.player.wasRemoved() || context.playerUuid == null) {
+            return;
+        }
+
+        PlayerState state = this.playerStateService.get(context.playerUuid);
+        List<ModelVfxRigService.DesiredRig> desiredModelRigs = collectDesiredModelRigs(context.player, state);
+        this.modelVfxRigService.syncPlayerRigs(
+            context.playerUuid,
+            world,
+            store,
+            context.position,
+            context.rotation,
+            desiredModelRigs,
+            nearbyPlayers,
+            frame,
+            nowMs
+        );
+    }
+
+    private List<ModelVfxRigService.DesiredRig> collectDesiredModelRigs(Player player, PlayerState state) {
+        if (player == null || state == null || state.getAllActive().isEmpty()) {
+            return List.of();
+        }
+
+        List<ModelVfxRigService.DesiredRig> desired = new ArrayList<>();
+        collectDesiredModelRigsForCategory(player, state, CosmeticCategory.AURAS, desired);
+        collectDesiredModelRigsForCategory(player, state, CosmeticCategory.AURAS_PREMIUM, desired);
+        collectDesiredModelRigsForCategory(player, state, CosmeticCategory.TRAILS, desired);
+        collectDesiredModelRigsForCategory(player, state, CosmeticCategory.FOOTPRINTS, desired);
+        collectDesiredModelRigsForCategory(player, state, CosmeticCategory.FLOATING_BADGES, desired);
+        collectDesiredModelRigsForCategory(player, state, CosmeticCategory.TROPHY_BADGES, desired);
+        return desired;
+    }
+
+    private void collectDesiredModelRigsForCategory(
+        Player player,
+        PlayerState state,
+        CosmeticCategory category,
+        List<ModelVfxRigService.DesiredRig> desired
+    ) {
+        for (CosmeticDefinition cosmetic : resolveActiveCosmetics(state, category)) {
+            if (cosmetic == null || !cosmetic.isModel3dBackend() || !hasCosmeticPermission(player, cosmetic)) {
+                continue;
+            }
+            desired.add(new ModelVfxRigService.DesiredRig(category.getId(), cosmetic.getId(), cosmetic.getModelAssetId(), cosmetic.getRigProfile()));
+        }
     }
 
     private void renderCategory(
@@ -860,6 +1556,11 @@ public class HyPerksCoreService {
         int slot = 0;
         for (CosmeticDefinition cosmetic : activeCosmetics) {
             if (cosmetic == null || !hasCosmeticPermission(player, cosmetic)) {
+                continue;
+            }
+
+            if (cosmetic.isModel3dBackend()) {
+                slot++;
                 continue;
             }
 
@@ -1034,6 +1735,145 @@ public class HyPerksCoreService {
                 spawnParticle(effectId, position.x + Math.cos(angle + Math.PI) * radius, y, position.z + Math.sin(angle + Math.PI) * radius, store);
             }
             spawnParticle(effectId, position.x, position.y + 2.20D, position.z, store);
+            return;
+        }
+
+        if ("fire_ice_cone".equals(cosmeticId) || "cone".equals(style)) {
+            if ((frame % 2L) != 0L) {
+                return;
+            }
+
+            double phase = frame * 0.18D;
+            double height = 1.65D;
+            int layers = 6;
+            for (int i = 0; i < layers; i++) {
+                double t = i / (double) (layers - 1);
+                double radius = 0.12D + (0.34D * t);
+                double localY = 0.28D + (height * t);
+                double swirl = phase + (t * 1.6D);
+                spawnRotatedParticle(
+                    effectId,
+                    position,
+                    Math.cos(swirl) * radius,
+                    localY,
+                    (-0.18D) + (Math.sin(swirl) * radius),
+                    yawDegrees,
+                    store
+                );
+                spawnRotatedParticle(
+                    effectId,
+                    position,
+                    Math.cos(swirl + Math.PI) * radius,
+                    localY,
+                    (-0.18D) + (Math.sin(swirl + Math.PI) * radius),
+                    yawDegrees,
+                    store
+                );
+            }
+
+            if ((frame % 8L) == 0L) {
+                spawnRotatedParticle(effectId, position, 0.0D, 2.03D, -0.20D, yawDegrees, store);
+            }
+            return;
+        }
+
+        if ("storm_clouds".equals(cosmeticId) || "storm".equals(style)) {
+            if ((frame % 2L) != 0L) {
+                return;
+            }
+
+            double phase = frame * 0.13D;
+            double cloudY = position.y + 2.24D + (Math.sin(frame * 0.06D) * 0.03D);
+            for (int i = 0; i < 6; i++) {
+                double angle = phase + (Math.PI * 2D * i / 6D);
+                double radius = 0.22D + ((i % 2 == 0) ? 0.05D : 0.02D);
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(angle) * radius,
+                    cloudY + Math.sin(phase + i) * 0.03D,
+                    position.z + Math.sin(angle) * radius,
+                    store
+                );
+            }
+
+            for (int i = 0; i < 3; i++) {
+                double n = phase + (i * 2.15D);
+                double dropX = position.x + Math.sin(n) * 0.22D;
+                double dropZ = position.z + Math.cos(n * 1.13D) * 0.22D;
+                double dropY = position.y + 1.88D - (((frame + (i * 2L)) % 5L) * 0.15D);
+                spawnParticle(effectId, dropX, dropY, dropZ, store);
+            }
+
+            // Periodic bolt line under the cloud cap.
+            if ((frame % 10L) == 0L) {
+                double strikeX = position.x + Math.sin(phase * 1.7D) * 0.09D;
+                double strikeZ = position.z + Math.cos(phase * 1.7D) * 0.09D;
+                for (int step = 0; step < 4; step++) {
+                    spawnParticle(effectId, strikeX, position.y + 2.10D - (step * 0.30D), strikeZ, store);
+                }
+            }
+            return;
+        }
+
+        if ("wingwang_sigil".equals(cosmeticId) || "sigil".equals(style)) {
+            if ((frame % 2L) != 0L) {
+                return;
+            }
+
+            double phase = frame * 0.17D;
+            for (int i = 0; i < 3; i++) {
+                double angle = phase + (Math.PI * 2D * i / 3D);
+                spawnRotatedParticle(
+                    effectId,
+                    position,
+                    Math.cos(angle) * 0.30D,
+                    1.50D + (Math.sin(phase + i) * 0.05D),
+                    -0.18D + (Math.sin(angle) * 0.10D),
+                    yawDegrees,
+                    store
+                );
+            }
+            spawnRotatedParticle(
+                effectId,
+                position,
+                0.0D,
+                1.56D + (Math.sin(phase * 1.5D) * 0.06D),
+                -0.22D,
+                yawDegrees,
+                store
+            );
+            if ((frame % 6L) == 0L) {
+                spawnRotatedParticle(effectId, position, 0.0D, 1.30D, -0.18D, yawDegrees, store);
+            }
+            return;
+        }
+
+        if ("fireworks_show".equals(cosmeticId) || "fireworks".equals(style)) {
+            if ((frame % 3L) != 0L) {
+                return;
+            }
+
+            double phase = frame * 0.11D;
+            double launchX = position.x + Math.cos(phase * 0.7D) * 0.18D;
+            double launchZ = position.z + Math.sin(phase * 0.7D) * 0.18D;
+            spawnParticle(effectId, launchX, position.y + 1.96D, launchZ, store);
+
+            if ((frame % 12L) == 0L) {
+                double burstY = position.y + 2.58D + (Math.sin(phase * 0.9D) * 0.10D);
+                int points = 8;
+                for (int i = 0; i < points; i++) {
+                    double angle = phase + (Math.PI * 2D * i / points);
+                    double radius = 0.28D + ((i % 2 == 0) ? 0.10D : 0.04D);
+                    spawnParticle(
+                        effectId,
+                        position.x + Math.cos(angle) * radius,
+                        burstY + (Math.sin(angle * 2.0D) * 0.10D),
+                        position.z + Math.sin(angle) * radius,
+                        store
+                    );
+                }
+                spawnParticle(effectId, position.x, burstY + 0.16D, position.z, store);
+            }
             return;
         }
 
@@ -1625,6 +2465,19 @@ public class HyPerksCoreService {
     private static Map<CosmeticCategory, Map<String, Integer>> createCosmeticOrder() {
         EnumMap<CosmeticCategory, Map<String, Integer>> order = new EnumMap<>(CosmeticCategory.class);
         order.put(
+            CosmeticCategory.AURAS,
+            createIdOrder(
+                "ember_halo",
+                "void_orbit",
+                "angel_wings",
+                "heart_bloom",
+                "fire_ice_cone",
+                "storm_clouds",
+                "wingwang_sigil",
+                "fireworks_show"
+            )
+        );
+        order.put(
             CosmeticCategory.AURAS_PREMIUM,
             createIdOrder("vip_aura", "vip_plus_aura", "mvp_aura", "mvp_plus_aura")
         );
@@ -1792,11 +2645,36 @@ public class HyPerksCoreService {
         return null;
     }
 
+    private UUID resolvePlayerUuidFromHolder(Holder<EntityStore> holder) {
+        if (holder == null) {
+            return null;
+        }
+
+        try {
+            PlayerRef playerRef = holder.getComponent(PlayerRef.getComponentType());
+            return playerRef == null ? null : playerRef.getUuid();
+        } catch (Exception ex) {
+            if (this.config.isDebugMode()) {
+                this.logger.atFine().withCause(ex).log("[HyPerks] Could not resolve player UUID from holder.");
+            }
+            return null;
+        }
+    }
+
     private String normalizeId(String input) {
         if (input == null) {
             return "";
         }
         return input.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private void clearAllActiveCosmetics(PlayerState state) {
+        if (state == null) {
+            return;
+        }
+        for (CosmeticCategory category : CosmeticCategory.values()) {
+            state.removeActive(category.getId());
+        }
     }
 
     private String normalizeEffectId(String input) {
@@ -1863,15 +2741,6 @@ public class HyPerksCoreService {
         }
     }
 
-    private static final class RenderThreadFactory implements ThreadFactory {
-        @Override
-        public Thread newThread(Runnable task) {
-            Thread thread = new Thread(task, RENDER_THREAD_NAME);
-            thread.setDaemon(true);
-            return thread;
-        }
-    }
-
     private static final class PermissionCacheKey {
         private final UUID playerUuid;
         private final String permissionNode;
@@ -1915,5 +2784,47 @@ public class HyPerksCoreService {
         private long lastFootstepAtMs;
         private long lastSeenMs;
         private boolean nextFootRight = true;
+    }
+
+    private static final class ModelRenderContext {
+        private final UUID playerUuid;
+        private final Player player;
+        private final Vector3d position;
+        private final Vector3f rotation;
+
+        private ModelRenderContext(UUID playerUuid, Player player, Vector3d position, Vector3f rotation) {
+            this.playerUuid = playerUuid;
+            this.player = player;
+            this.position = position;
+            this.rotation = rotation;
+        }
+    }
+
+    private static final class ModelLodCellKey {
+        private final int x;
+        private final int y;
+        private final int z;
+
+        private ModelLodCellKey(int x, int y, int z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof ModelLodCellKey that)) {
+                return false;
+            }
+            return this.x == that.x && this.y == that.y && this.z == that.z;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.x, this.y, this.z);
+        }
     }
 }

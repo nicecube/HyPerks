@@ -1,5 +1,5 @@
 Button #Button {
-  Anchor: (Width: 740, Height: 60, Bottom: 5);
+  Anchor: (Width: 740, Height: 66, Bottom: 5);
   Padding: (Full: 8);
   LayoutMode: Top;
   Background: (Color: #0f1d30(0.88));
@@ -31,14 +31,24 @@ Button #Button {
         TextColor: #7a9cc6,
         RenderBold: true
       );
+      Anchor: (Right: 8);
+    }
+
+    Label #Action {
+      Style: (
+        RenderUppercase: true,
+        FontSize: 9,
+        TextColor: #b7d2f0,
+        RenderBold: true
+      );
     }
   }
 
   Label #Meta {
-    Anchor: (Top: 3);
+    Anchor: (Top: 4);
     Style: (
-      FontSize: 11,
-      TextColor: #ffffff(0.65)
+      FontSize: 10,
+      TextColor: #ffffff(0.62)
     );
   }
 }

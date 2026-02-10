@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Aura_Fire_Ice_Cone",
+      "FixedRotation": false
+    }
+  ],
+  "LifeSpan": 1.6,
+  "IsImportant": false
+}

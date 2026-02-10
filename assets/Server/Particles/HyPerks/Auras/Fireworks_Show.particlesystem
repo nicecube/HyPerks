@@ -1,0 +1,10 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "HyPerks_Aura_Fireworks_Show",
+      "FixedRotation": false
+    }
+  ],
+  "LifeSpan": 1.2,
+  "IsImportant": false
+}

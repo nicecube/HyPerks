@@ -1,0 +1,56 @@
+{
+  "EmitOffset": {
+    "X": { "Min": -0.1, "Max": 0.1 },
+    "Y": { "Min": -0.08, "Max": 0.08 },
+    "Z": { "Min": -0.1, "Max": 0.1 }
+  },
+  "ParticleRotationInfluence": "Billboard",
+  "LinearFiltering": true,
+  "LightInfluence": 0.85,
+  "ParticleRotateWithSpawner": false,
+  "TrailSpawnerPositionMultiplier": 0,
+  "TrailSpawnerRotationMultiplier": 1,
+  "MaxConcurrentParticles": 10,
+  "ParticleLifeSpan": { "Min": 0.65, "Max": 0.95 },
+  "SpawnRate": { "Min": 2, "Max": 3 },
+  "Particle": {
+    "Texture": "Particles/Textures/HyPerks/Aura_Storm_CloudBolt.png",
+    "FrameSize": { "Width": 64, "Height": 64 },
+    "ScaleRatioConstraint": "OneToOne",
+    "UVOption": "RandomFlipU",
+    "Animation": {
+      "0": {
+        "Opacity": 0.95,
+        "Scale": { "X": { "Min": 1.0, "Max": 1.0 } },
+        "Color": "#dbe7ff"
+      },
+      "50": {
+        "Opacity": 0.62,
+        "Color": "#b4d2ff"
+      },
+      "100": {
+        "Opacity": 0.0,
+        "Scale": { "X": { "Min": 0.26, "Max": 0.26 } },
+        "Color": "#8caeff"
+      }
+    },
+    "InitialAnimationFrame": {
+      "Scale": { "X": { "Min": 0.1, "Max": 0.18 } },
+      "Opacity": 0.95,
+      "Rotation": { "Z": { "Min": -18, "Max": 18 } }
+    }
+  },
+  "SpawnBurst": false,
+  "Attractors": [
+    {
+      "Position": { "X": 0, "Y": 0, "Z": 0 },
+      "LinearAcceleration": { "X": 0, "Y": -0.04, "Z": 0 },
+      "DampingMultiplier": { "X": 0.9, "Y": 0.9, "Z": 0.9 }
+    }
+  ],
+  "InitialVelocity": {
+    "Yaw": { "Min": -180, "Max": 180 },
+    "Pitch": { "Min": 72, "Max": 90 },
+    "Speed": { "Min": 0.0, "Max": 0.04 }
+  }
+}

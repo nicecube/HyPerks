@@ -10,6 +10,7 @@ HyPerks is a Hytale server mod for VIP cosmetics with:
 - permission cache with manual refresh
 - persistence modes: `json`, `sqlite`, `mysql`
 - bundled custom asset pack (V2)
+- special aura pack: fire/ice cone, storm clouds + lightning, WingWang sigil, fireworks
 
 ## Commands
 
@@ -110,6 +111,12 @@ This build bundles custom assets from `assets/` directly in `HyPerks.jar`:
 - trophy badge effects
 - premium aura effects
 - movement trail effects
+
+Special aura textures can be regenerated with:
+
+```powershell
+.\scripts\generate_special_fx_textures.ps1
+```
 
 ## Build
 

@@ -25,9 +25,11 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
     private static final String ENTRY_UI_FILE = "Pages/HyPerksMenuEntryButton.ui";
     private static final String TAB_ROOT = "#TabList";
     private static final String LIST_ROOT = "#EntryList";
+    private static final String ROW_BUTTON = "#Button";
     private static final String ACTIVE_EFFECT_LABEL = "#ActiveEffect";
     private static final String ACTIVE_COUNT_LABEL = "#ActiveCount";
     private static final String HINT_LABEL = "#HintLine";
+    private static final String CLEAR_ALL_BUTTON = "#ClearAllButton";
 
     private final HyPerksCoreService coreService;
     private String selectedCategoryId = CosmeticCategory.AURAS.getId();
@@ -77,6 +79,9 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         if ("toggle".equals(action) && categoryId != null && cosmeticId != null) {
             this.coreService.toggleFromMenu(player, categoryId, cosmeticId);
             shouldRefresh = true;
+        } else if ("clear_all".equals(action)) {
+            this.coreService.clearAllFromMenu(player);
+            shouldRefresh = true;
         } else if (action == null && categoryId != null && cosmeticId != null) {
             // Backward-compatible event handling.
             this.coreService.toggleFromMenu(player, categoryId, cosmeticId);
@@ -113,6 +118,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         buildTabs(player, selectedCategory, commands, events);
         buildCosmeticList(player, selectedCategory, commands, events);
         updateHeaderInfo(player, selectedCategory, commands);
+        bindStaticActions(player, commands, events);
     }
 
     private void updateHeaderInfo(Player player, CosmeticCategory selectedCategory, UICommandBuilder commands) {
@@ -132,6 +138,16 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         commands.set(HINT_LABEL + ".Text", this.coreService.trForPlayer(player, "menu.gui.hint_toggle"));
     }
 
+    private void bindStaticActions(Player player, UICommandBuilder commands, UIEventBuilder events) {
+        commands.set(CLEAR_ALL_BUTTON + " #Text.Text", this.coreService.trForPlayer(player, "menu.gui.clear_all"));
+        events.addEventBinding(
+            CustomUIEventBindingType.Activating,
+            CLEAR_ALL_BUTTON,
+            EventData.of(MenuEventData.KEY_ACTION, "clear_all"),
+            false
+        );
+    }
+
     private void buildTabs(
         Player player,
         CosmeticCategory selectedCategory,
@@ -146,6 +162,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             }
 
             String itemPath = TAB_ROOT + "[" + index + "]";
+            String buttonPath = itemPath + " " + ROW_BUTTON;
             commands.append(TAB_ROOT, TAB_UI_FILE);
 
             String categoryName = this.coreService.getCategoryDisplayName(player, category.getId());
@@ -153,10 +170,10 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             boolean activeInCategory = entries.stream().anyMatch(HyPerksCoreService.MenuEntry::isActive);
             boolean selected = category == selectedCategory;
 
-            commands.set(itemPath + " #Name.Text", (selected ? "> " : "") + categoryName);
-            commands.set(itemPath + " #Meta.Text", this.coreService.trForPlayer(player, "menu.gui.tab_unlocked", unlocked, entries.size()));
+            commands.set(buttonPath + " #Name.Text", (selected ? "> " : "") + categoryName);
+            commands.set(buttonPath + " #Meta.Text", this.coreService.trForPlayer(player, "menu.gui.tab_unlocked", unlocked, entries.size()));
             commands.set(
-                itemPath + " #Status.Text",
+                buttonPath + " #Status.Text",
                 activeInCategory
                     ? this.coreService.trForPlayer(player, "menu.gui.tab_status.active")
                     : (selected
@@ -167,7 +184,7 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             EventData eventData = EventData
                 .of(MenuEventData.KEY_ACTION, "tab")
                 .append(MenuEventData.KEY_TAB_CATEGORY, category.getId());
-            events.addEventBinding(CustomUIEventBindingType.Activating, itemPath, eventData, false);
+            events.addEventBinding(CustomUIEventBindingType.Activating, buttonPath, eventData, false);
             index++;
         }
     }
@@ -190,22 +207,24 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         for (int index = 0; index < entries.size(); index++) {
             HyPerksCoreService.MenuEntry entry = entries.get(index);
             String itemPath = LIST_ROOT + "[" + index + "]";
+            String buttonPath = itemPath + " " + ROW_BUTTON;
 
             commands.append(LIST_ROOT, ENTRY_UI_FILE);
-            commands.set(itemPath + " #Name.Text", entry.getDisplayName());
+            commands.set(buttonPath + " #Name.Text", buildEntryName(entry));
             commands.set(
-                itemPath + " #Meta.Text",
+                buttonPath + " #Meta.Text",
                 entry.isActive()
-                    ? entry.getDetailLine() + " | " + this.coreService.trForPlayer(player, "menu.gui.click_to_disable")
-                    : entry.getDetailLine()
+                    ? compact(buildEntryMeta(entry) + " | " + this.coreService.trForPlayer(player, "menu.gui.click_to_disable"), 74)
+                    : compact(buildEntryMeta(entry), 74)
             );
-            commands.set(itemPath + " #Status.Text", resolveStatusLabel(player, entry));
+            commands.set(buttonPath + " #Status.Text", resolveStatusLabel(player, entry));
+            commands.set(buttonPath + " #Action.Text", resolveActionLabel(player, entry));
 
             EventData eventData = EventData
                 .of(MenuEventData.KEY_ACTION, "toggle")
                 .append(MenuEventData.KEY_CATEGORY, entry.getCategoryId())
                 .append(MenuEventData.KEY_COSMETIC, entry.getCosmeticId());
-            events.addEventBinding(CustomUIEventBindingType.Activating, itemPath, eventData, false);
+            events.addEventBinding(CustomUIEventBindingType.Activating, buttonPath, eventData, false);
         }
     }
 
@@ -231,6 +250,39 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
             return this.coreService.trForPlayer(player, "status.unlocked");
         }
         return this.coreService.trForPlayer(player, "status.locked");
+    }
+
+    private String resolveActionLabel(Player player, HyPerksCoreService.MenuEntry entry) {
+        if (entry.isActive()) {
+            return this.coreService.trForPlayer(player, "menu.gui.action.disable");
+        }
+        if (entry.isUnlocked()) {
+            return this.coreService.trForPlayer(player, "menu.gui.action.activate");
+        }
+        return this.coreService.trForPlayer(player, "menu.gui.action.locked");
+    }
+
+    private String buildEntryName(HyPerksCoreService.MenuEntry entry) {
+        String marker = entry.isActive() ? "[x] " : (entry.isUnlocked() ? "[ ] " : "[-] ");
+        String rawName = entry.getDisplayName().replace("[*] ", "");
+        return compact(marker + rawName, 44);
+    }
+
+    private String buildEntryMeta(HyPerksCoreService.MenuEntry entry) {
+        return entry.getCategoryId() + " / " + entry.getCosmeticId();
+    }
+
+    private String compact(String value, int maxChars) {
+        if (value == null) {
+            return "";
+        }
+        if (value.length() <= maxChars) {
+            return value;
+        }
+        if (maxChars <= 3) {
+            return value.substring(0, Math.max(0, maxChars));
+        }
+        return value.substring(0, maxChars - 3) + "...";
     }
 
     public static final class MenuEventData {

@@ -1,12 +1,16 @@
 package ca.nicecube.hyperks;
 
 import ca.nicecube.hyperks.command.HyPerksCommand;
+import ca.nicecube.hyperks.event.PlayerLifecycleListener;
 import ca.nicecube.hyperks.event.PlayerReadyListener;
 import ca.nicecube.hyperks.service.HyPerksCoreService;
 import ca.nicecube.hyperks.service.HyPerksPaths;
 import ca.nicecube.hyperks.service.JsonConfigStore;
 import ca.nicecube.hyperks.service.LocalizationService;
 import ca.nicecube.hyperks.service.PlayerStateService;
+import com.hypixel.hytale.server.core.event.events.player.AddPlayerToWorldEvent;
+import com.hypixel.hytale.server.core.event.events.player.DrainPlayerFromWorldEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -46,6 +50,10 @@ public class HyPerksPlugin extends JavaPlugin {
 
         this.getCommandRegistry().registerCommand(new HyPerksCommand(this.coreService));
         this.getEventRegistry().registerGlobal(PlayerReadyEvent.class, new PlayerReadyListener(this.coreService)::onPlayerReady);
+        PlayerLifecycleListener lifecycleListener = new PlayerLifecycleListener(this.coreService);
+        this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, lifecycleListener::onPlayerDisconnect);
+        this.getEventRegistry().registerGlobal(DrainPlayerFromWorldEvent.class, lifecycleListener::onDrainPlayerFromWorld);
+        this.getEventRegistry().registerGlobal(AddPlayerToWorldEvent.class, lifecycleListener::onAddPlayerToWorld);
 
         this.getLogger().atInfo().log("[%s] Enabled. Data folder: %s", this.getName(), dataDirectory.toAbsolutePath());
     }

@@ -1,0 +1,30 @@
+﻿{
+    "Model":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Rig_Outer.blockymodel",
+    "Texture":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Atlas.png",
+    "EyeHeight":  1.5,
+    "HitBox":  {
+                   "Max":  {
+                               "X":  0.38,
+                               "Y":  0.38,
+                               "Z":  0.38
+                           },
+                   "Min":  {
+                               "X":  -0.38,
+                               "Y":  -0.38,
+                               "Z":  -0.38
+                           }
+               },
+    "MinScale":  2.5,
+    "MaxScale":  2.5,
+    "AnimationSets":  {
+                          "Idle":  {
+                                       "Animations":  [
+                                                          {
+                                                              "Animation":  "Server/Models/HyPerksVFX/Premium/WingWangSigil/WingWangSigil_Rig_Outer_Idle.blockyanim",
+                                                              "BlendingDuration":  0.08,
+                                                              "Speed":  1
+                                                          }
+                                                      ]
+                                   }
+                      }
+}
