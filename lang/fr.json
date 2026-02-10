@@ -1,4 +1,4 @@
-﻿{
+{
   "cmd.menu.title": "=== Cosmetiques HyPerks ===",
   "cmd.menu.chat_mode": "Mode menu : menu chat HyPerks.",
   "cmd.menu.line": "/hyperks {0}",
@@ -86,14 +86,14 @@
   "cosmetic.footprints.rune_steps.name": "Pas runiques",
   "cosmetic.footprints.rune_steps.desc": "Des runes arcaniques apparaissent sous tes pieds.",
 
-  "cosmetic.floating_badges.vip.name": "Flux de tags VIP",
-  "cosmetic.floating_badges.vip.desc": "De petits tags VIP montent depuis tes pieds.",
-  "cosmetic.floating_badges.vip_plus.name": "Flux de tags VIP+",
-  "cosmetic.floating_badges.vip_plus.desc": "Flux VIP+ plus dense avec tons lumineux.",
-  "cosmetic.floating_badges.mvp.name": "Flux de tags MVP",
-  "cosmetic.floating_badges.mvp.desc": "Des tags MVP montent rapidement autour de toi.",
-  "cosmetic.floating_badges.mvp_plus.name": "Flux de tags MVP+",
-  "cosmetic.floating_badges.mvp_plus.desc": "Flux MVP+ haut niveau avec forte intensite.",
+  "cosmetic.floating_badges.vip.name": "Badge flottant VIP",
+  "cosmetic.floating_badges.vip.desc": "Un badge VIP propre qui orbite au-dessus de ta tete.",
+  "cosmetic.floating_badges.vip_plus.name": "Badge flottant VIP+",
+  "cosmetic.floating_badges.vip_plus.desc": "Un badge VIP+ raffine avec une orbite douce.",
+  "cosmetic.floating_badges.mvp.name": "Badge flottant MVP",
+  "cosmetic.floating_badges.mvp.desc": "Un badge MVP plus lumineux qui flotte autour de ta tete.",
+  "cosmetic.floating_badges.mvp_plus.name": "Badge flottant MVP+",
+  "cosmetic.floating_badges.mvp_plus.desc": "Un blason MVP+ prestige avec une orbite royale lente.",
   "cosmetic.floating_badges.mcqc_legacy_fleur.name": "Fleur Legacy MCQC",
   "cosmetic.floating_badges.mcqc_legacy_fleur.desc": "Badge flottant fleur de lys pour les veterans de Minecraft Quebec.",
   "cosmetic.floating_badges.mcqc_legacy_fleur_b.name": "Fleur Legacy MCQC (B)",

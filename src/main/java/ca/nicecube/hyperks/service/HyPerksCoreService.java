@@ -57,7 +57,7 @@ public class HyPerksCoreService {
     );
 
     private static final long FOOTPRINT_MIN_INTERVAL_MS = 120L;
-    private static final double FOOTPRINT_MIN_MOVE_SQUARED = 0.005D;
+    private static final double FOOTPRINT_MIN_MOVE_SQUARED = 0.0015D;
     private static final long TRACKER_RETENTION_MS = 300_000L;
     private static final long COMMAND_TRACKER_RETENTION_MS = 600_000L;
     private static final long PERMISSION_CACHE_RETENTION_MS = 180_000L;
@@ -892,38 +892,55 @@ public class HyPerksCoreService {
         String style = cosmetic.getRenderStyle();
         String cosmeticId = cosmetic.getId();
         if ("angel_wings".equals(cosmeticId)) {
-            if ((frame % 3L) != 0L) {
+            if ((frame % 4L) != 0L) {
                 return;
             }
 
-            double flap = Math.sin(frame * 0.045D) * 0.035D;
-            double baseY = position.y + 1.32D + flap;
+            double flap = Math.sin(frame * 0.030D) * 0.05D;
+            double baseY = position.y + 1.34D + flap;
+            double yawRadians = Math.toRadians(yawDegrees);
+            double forwardX = Math.cos(yawRadians);
+            double forwardZ = Math.sin(yawRadians);
+            double rightX = Math.cos(yawRadians + (Math.PI / 2.0D));
+            double rightZ = Math.sin(yawRadians + (Math.PI / 2.0D));
             double[][] wingCurve = {
-                {0.22D, 0.24D, -0.38D},
-                {0.36D, 0.32D, -0.44D},
-                {0.48D, 0.24D, -0.48D},
-                {0.56D, 0.12D, -0.46D},
-                {0.40D, 0.02D, -0.38D}
+                {0.14D, 0.28D, 0.24D},
+                {0.28D, 0.20D, 0.34D},
+                {0.38D, 0.10D, 0.42D},
+                {0.32D, 0.00D, 0.38D},
+                {0.20D, -0.08D, 0.30D}
             };
 
             for (double[] point : wingCurve) {
                 double wingY = baseY + point[1];
-                spawnRotatedParticle(effectId, position, -point[0], wingY - position.y, point[2], yawDegrees, store);
-                spawnRotatedParticle(effectId, position, point[0], wingY - position.y, point[2], yawDegrees, store);
+                for (int direction = -1; direction <= 1; direction += 2) {
+                    double lateral = point[0] * direction;
+                    double x = position.x + (rightX * lateral) - (forwardX * point[2]);
+                    double z = position.z + (rightZ * lateral) - (forwardZ * point[2]);
+                    spawnParticle(effectId, x, wingY, z, store);
+                }
             }
 
-            if ((frame % 10L) == 0L) {
-                spawnRotatedParticle(effectId, position, 0.0D, 1.52D + (flap * 0.2D), -0.30D, yawDegrees, store);
+            if ((frame % 14L) == 0L) {
+                for (int direction = -1; direction <= 1; direction += 2) {
+                    double lateral = 0.08D * direction;
+                    double x = position.x + (rightX * lateral) - (forwardX * 0.20D);
+                    double z = position.z + (rightZ * lateral) - (forwardZ * 0.20D);
+                    spawnParticle(effectId, x, position.y + 1.44D + (flap * 0.2D), z, store);
+                }
             }
             return;
         }
 
         if ("ember_halo".equals(cosmeticId)) {
-            double phase = frame * 0.058D;
-            double radius = 0.26D;
-            double y = position.y + 1.92D;
+            if ((frame % 5L) != 0L) {
+                return;
+            }
+            double phase = frame * 0.045D;
+            double radius = 0.17D;
+            double y = position.y + 1.88D;
             spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
-            if ((frame % 4L) == 0L) {
+            if ((frame % 18L) == 0L) {
                 spawnParticle(
                     effectId,
                     position.x + Math.cos(phase + Math.PI) * radius,
@@ -936,29 +953,29 @@ public class HyPerksCoreService {
         }
 
         if ("void_orbit".equals(cosmeticId)) {
-            if ((frame % 3L) != 0L) {
+            if ((frame % 8L) != 0L) {
                 return;
             }
 
-            double phaseOuter = frame * 0.035D;
-            double phaseInner = -frame * 0.028D;
-            double outerRadius = 0.36D;
-            double innerRadius = 0.20D;
+            double phaseOuter = frame * 0.017D;
+            double phaseInner = -frame * 0.013D;
+            double outerRadius = 0.26D;
+            double innerRadius = 0.15D;
             double yOuter = position.y + 1.84D;
-            double yInner = position.y + 1.96D;
+            double yInner = position.y + 1.94D;
 
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 1; i++) {
                 double angle = phaseOuter + (Math.PI * i);
                 spawnParticle(
                     effectId,
                     position.x + Math.cos(angle) * outerRadius,
-                    yOuter + Math.sin(phaseOuter + i) * 0.03D,
+                    yOuter + Math.sin(phaseOuter + i) * 0.02D,
                     position.z + Math.sin(angle) * outerRadius,
                     store
                 );
             }
 
-            if ((frame % 6L) == 0L) {
+            if ((frame % 32L) == 0L) {
                 double angle = phaseInner;
                 spawnParticle(
                     effectId,
@@ -972,15 +989,15 @@ public class HyPerksCoreService {
         }
 
         if ("heart_bloom".equals(cosmeticId)) {
-            if ((frame % 4L) != 0L) {
+            if ((frame % 8L) != 0L) {
                 return;
             }
 
-            double bob = Math.sin(frame * 0.06D) * 0.04D;
-            double y = position.y + 1.92D + bob;
-            spawnParticle(effectId, position.x - 0.18D, y, position.z - 0.07D, store);
-            spawnParticle(effectId, position.x + 0.18D, y, position.z + 0.07D, store);
-            if ((frame % 12L) == 0L) {
+            double bob = Math.sin(frame * 0.028D) * 0.024D;
+            double y = position.y + 1.94D + bob;
+            spawnParticle(effectId, position.x - 0.24D, y, position.z - 0.11D, store);
+            spawnParticle(effectId, position.x + 0.24D, y, position.z + 0.11D, store);
+            if ((frame % 40L) == 0L) {
                 spawnParticle(effectId, position.x, y + 0.06D, position.z, store);
             }
             return;
@@ -1026,32 +1043,32 @@ public class HyPerksCoreService {
         String cosmeticId = cosmetic.getId();
         if ("crown".equals(style) || "vip_aura".equals(cosmeticId) || "vip_plus_aura".equals(cosmeticId)
             || "mvp_aura".equals(cosmeticId) || "mvp_plus_aura".equals(cosmeticId)) {
-            long frameGate = 6L;
+            long frameGate = 22L;
             int crownPoints = 1;
-            double radius = 0.22D;
-            double wobble = 0.012D;
-            long centerSpawnEvery = 18L;
-            double phaseSpeed = 0.035D;
+            double radius = 0.18D;
+            double wobble = 0.008D;
+            long centerSpawnEvery = 72L;
+            double phaseSpeed = 0.018D;
 
             if ("vip_plus_aura".equals(cosmeticId)) {
-                frameGate = 5L;
+                frameGate = 18L;
                 crownPoints = 1;
-                radius = 0.24D;
-                centerSpawnEvery = 16L;
-                phaseSpeed = 0.038D;
+                radius = 0.20D;
+                centerSpawnEvery = 60L;
+                phaseSpeed = 0.020D;
             } else if ("mvp_aura".equals(cosmeticId)) {
-                frameGate = 5L;
+                frameGate = 15L;
                 crownPoints = 1;
-                radius = 0.25D;
-                centerSpawnEvery = 14L;
-                phaseSpeed = 0.04D;
+                radius = 0.22D;
+                centerSpawnEvery = 50L;
+                phaseSpeed = 0.022D;
             } else if ("mvp_plus_aura".equals(cosmeticId)) {
-                frameGate = 4L;
-                crownPoints = 1;
-                radius = 0.27D;
-                wobble = 0.014D;
-                centerSpawnEvery = 12L;
-                phaseSpeed = 0.045D;
+                frameGate = 12L;
+                crownPoints = 2;
+                radius = 0.24D;
+                wobble = 0.009D;
+                centerSpawnEvery = 42L;
+                phaseSpeed = 0.024D;
             }
 
             if ((frame % frameGate) != 0L) {
@@ -1059,7 +1076,7 @@ public class HyPerksCoreService {
             }
 
             double phase = frame * phaseSpeed;
-            double yBase = position.y + 2.03D;
+            double yBase = position.y + 2.02D;
             for (int i = 0; i < crownPoints; i++) {
                 double angle = phase + (Math.PI * 2D * i / crownPoints);
                 spawnParticle(
@@ -1072,7 +1089,7 @@ public class HyPerksCoreService {
             }
 
             if ((frame % centerSpawnEvery) == 0L) {
-                spawnParticle(effectId, position.x, yBase + 0.16D, position.z, store);
+                spawnParticle(effectId, position.x, yBase + 0.12D, position.z, store);
             }
             return;
         }
@@ -1089,25 +1106,26 @@ public class HyPerksCoreService {
         long frame
     ) {
         String style = cosmetic.getRenderStyle();
+        String cosmeticId = cosmetic.getId();
         double baseY = position.y + 0.1D;
 
         if ("comet".equals(style)) {
-            if ((frame % 2L) != 0L) {
+            if ((frame % 3L) != 0L) {
                 return;
             }
-            double phase = frame * 0.10D;
-            spawnParticle(effectId, position.x + Math.cos(phase) * 0.11D, baseY, position.z + Math.sin(phase) * 0.11D, store);
-            if ((frame % 4L) == 0L) {
+            double phase = frame * 0.09D;
+            spawnParticle(effectId, position.x + Math.cos(phase) * 0.10D, baseY, position.z + Math.sin(phase) * 0.10D, store);
+            if ((frame % 6L) == 0L) {
                 spawnParticle(effectId, position.x - Math.cos(phase) * 0.17D, baseY + 0.02D, position.z - Math.sin(phase) * 0.17D, store);
             }
             return;
         }
 
         if ("spark".equals(style)) {
-            if ((frame % 2L) != 0L) {
+            if ((frame % 3L) != 0L) {
                 return;
             }
-            double sway = Math.sin(frame * 0.12D) * 0.1D;
+            double sway = Math.sin(frame * 0.11D) * 0.08D;
             spawnParticle(effectId, position.x + sway, baseY, position.z, store);
             spawnParticle(effectId, position.x - sway, baseY + 0.02D, position.z, store);
             return;
@@ -1117,8 +1135,8 @@ public class HyPerksCoreService {
             if ((frame % 2L) != 0L) {
                 return;
             }
-            double phase = frame * 0.17D;
-            double radius = 0.18D;
+            double phase = frame * 0.15D;
+            double radius = 0.14D;
             spawnParticle(effectId, position.x + Math.cos(phase) * radius, baseY, position.z + Math.sin(phase) * radius, store);
             spawnParticle(
                 effectId,
@@ -1127,8 +1145,8 @@ public class HyPerksCoreService {
                 position.z + Math.sin(phase + Math.PI) * radius,
                 store
             );
-            if ((frame % 6L) == 0L) {
-                spawnParticle(effectId, position.x, baseY + 0.05D, position.z, store);
+            if ((frame % 8L) == 0L) {
+                spawnParticle(effectId, position.x, baseY + 0.02D, position.z, store);
             }
             return;
         }
@@ -1137,8 +1155,8 @@ public class HyPerksCoreService {
             if ((frame % 2L) != 0L) {
                 return;
             }
-            double phase = frame * 0.2D;
-            double radius = 0.22D;
+            double phase = frame * 0.17D;
+            double radius = 0.18D;
             for (int i = 0; i < 3; i++) {
                 double angle = phase + (Math.PI * 2D * i / 3D);
                 spawnParticle(
@@ -1149,7 +1167,7 @@ public class HyPerksCoreService {
                     store
                 );
             }
-            if ((frame % 3L) == 0L) {
+            if ((frame % 4L) == 0L) {
                 spawnParticle(effectId, position.x, baseY + 0.04D, position.z, store);
             }
             return;
@@ -1159,8 +1177,19 @@ public class HyPerksCoreService {
             if ((frame % 3L) != 0L) {
                 return;
             }
-            for (int i = 0; i < 4; i++) {
-                spawnParticle(effectId, position.x, baseY + (i * 0.065D), position.z, store);
+            double phase = frame * 0.06D;
+            for (int i = 0; i < 3; i++) {
+                double offset = 0.02D + (i * 0.01D);
+                spawnParticle(
+                    effectId,
+                    position.x + (Math.cos(phase + i) * offset),
+                    baseY + (i * 0.075D),
+                    position.z + (Math.sin(phase + i) * offset),
+                    store
+                );
+            }
+            if ((frame % 9L) == 0L) {
+                spawnParticle(effectId, position.x, baseY + 0.24D, position.z, store);
             }
             return;
         }
@@ -1170,9 +1199,29 @@ public class HyPerksCoreService {
                 return;
             }
             double phase = frame * 0.08D;
+
+            if ("star_trail".equals(cosmeticId) || "money_trail".equals(cosmeticId) || "death_trail".equals(cosmeticId)) {
+                spawnParticle(effectId, position.x, baseY + 0.02D, position.z, store);
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(phase) * 0.10D,
+                    baseY,
+                    position.z + Math.sin(phase) * 0.10D,
+                    store
+                );
+                spawnParticle(
+                    effectId,
+                    position.x + Math.cos(phase + 2.1D) * 0.16D,
+                    baseY + 0.04D,
+                    position.z + Math.sin(phase + 2.1D) * 0.16D,
+                    store
+                );
+                return;
+            }
+
             spawnParticle(effectId, position.x, baseY + 0.02D, position.z, store);
             spawnParticle(effectId, position.x + Math.cos(phase) * 0.10D, baseY, position.z + Math.sin(phase) * 0.10D, store);
-            if ((frame % 6L) == 0L) {
+            if ((frame % 7L) == 0L) {
                 spawnParticle(effectId, position.x - Math.cos(phase) * 0.08D, baseY + 0.03D, position.z - Math.sin(phase) * 0.08D, store);
             }
             return;
@@ -1199,17 +1248,16 @@ public class HyPerksCoreService {
             }
         }
 
-        double side = tracker.nextFootRight ? 0.14D : -0.14D;
+        double side = tracker.nextFootRight ? 0.17D : -0.17D;
         tracker.nextFootRight = !tracker.nextFootRight;
 
         double yawRadians = Math.toRadians(yawDegrees + 90.0D);
         double offsetX = Math.cos(yawRadians) * side;
         double offsetZ = Math.sin(yawRadians) * side;
-        double forwardX = Math.cos(Math.toRadians(yawDegrees)) * 0.04D;
-        double forwardZ = Math.sin(Math.toRadians(yawDegrees)) * 0.04D;
+        double forwardX = Math.cos(Math.toRadians(yawDegrees)) * 0.10D;
+        double forwardZ = Math.sin(Math.toRadians(yawDegrees)) * 0.10D;
 
-        spawnParticle(effectId, position.x + offsetX + forwardX, position.y + 0.06D, position.z + offsetZ + forwardZ, store);
-        spawnParticle(effectId, position.x + offsetX - forwardX, position.y + 0.06D, position.z + offsetZ - forwardZ, store);
+        spawnParticle(effectId, position.x + offsetX + forwardX, position.y + 0.08D, position.z + offsetZ + forwardZ, store);
         tracker.lastFootstepPosition = new Vector3d(position);
         tracker.lastFootstepAtMs = nowMs;
     }
@@ -1223,15 +1271,15 @@ public class HyPerksCoreService {
         int slot,
         int totalSlots
     ) {
-        if ((frame % 8L) != 0L) {
+        if ((frame % 14L) != 0L) {
             return;
         }
 
         double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
-        double phase = (frame * 0.025D) + baseAngle;
-        double bob = Math.sin(frame * 0.02D + slot) * 0.015D;
-        double radius = "rank_stream".equals(cosmetic.getRenderStyle()) ? 0.30D : 0.27D;
-        double y = position.y + 2.12D + bob;
+        double phase = (frame * 0.012D) + baseAngle;
+        double bob = Math.sin(frame * 0.010D + slot) * 0.008D;
+        double radius = 0.22D + (Math.min(4, totalSlots) * 0.015D);
+        double y = position.y + 2.08D + bob;
         double x = position.x + Math.cos(phase) * radius;
         double z = position.z + Math.sin(phase) * radius;
         spawnParticle(effectId, x, y, z, store);
@@ -1246,15 +1294,15 @@ public class HyPerksCoreService {
         int slot,
         int totalSlots
     ) {
-        if ((frame % 9L) != 0L) {
+        if ((frame % 16L) != 0L) {
             return;
         }
 
         double baseAngle = (Math.PI * 2D * slot / Math.max(1, totalSlots));
-        double phase = (frame * 0.025D) + baseAngle;
-        double bob = Math.sin(frame * 0.02D + slot) * 0.015D;
-        double radius = "crown".equals(cosmetic.getRenderStyle()) ? 0.33D : 0.30D;
-        double y = position.y + 2.28D + bob;
+        double phase = (frame * 0.010D) + baseAngle;
+        double bob = Math.sin(frame * 0.009D + slot) * 0.008D;
+        double radius = "crown".equals(cosmetic.getRenderStyle()) ? 0.25D : 0.23D;
+        double y = position.y + 2.22D + bob;
         spawnParticle(effectId, position.x + Math.cos(phase) * radius, y, position.z + Math.sin(phase) * radius, store);
     }
 

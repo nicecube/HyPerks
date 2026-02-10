@@ -239,26 +239,26 @@ public class CosmeticCatalog {
         catalog.cosmetics.add(c(
             "vip",
             "floating_badges",
-            "Server/Particles/HyPerks/RankTags/VIP_Stream.particlesystem",
-            "rank_stream"
+            "Server/Particles/HyPerks/Badges/VIP_Gold_Badge.particlesystem",
+            "badge"
         ));
         catalog.cosmetics.add(c(
             "vip_plus",
             "floating_badges",
-            "Server/Particles/HyPerks/RankTags/VIPPlus_Stream.particlesystem",
-            "rank_stream"
+            "Server/Particles/HyPerks/Badges/VIP_Platinum_Badge.particlesystem",
+            "badge"
         ));
         catalog.cosmetics.add(c(
             "mvp",
             "floating_badges",
-            "Server/Particles/HyPerks/RankTags/MVP_Stream.particlesystem",
-            "rank_stream"
+            "Server/Particles/HyPerks/Badges/MVP_Diamond_Badge.particlesystem",
+            "badge"
         ));
         catalog.cosmetics.add(c(
             "mvp_plus",
             "floating_badges",
-            "Server/Particles/HyPerks/RankTags/MVPPlus_Stream.particlesystem",
-            "rank_stream"
+            "Server/Particles/HyPerks/Badges/Founder_Crest_Badge.particlesystem",
+            "badge"
         ));
         catalog.cosmetics.add(c(
             "mcqc_legacy_fleur",

@@ -1,4 +1,4 @@
-﻿{
+{
   "cmd.menu.title": "=== HyPerks Cosmetics ===",
   "cmd.menu.line": "/hyperks {0}",
   "cmd.menu.categories": "Categories loaded: {0}",
@@ -145,14 +145,14 @@
   "cosmetic.footprints.rune_steps.name": "Rune Steps",
   "cosmetic.footprints.rune_steps.desc": "Arcane rune traces appear under your feet.",
 
-  "cosmetic.floating_badges.vip.name": "VIP Tag Stream",
-  "cosmetic.floating_badges.vip.desc": "Small VIP tags stream from your feet upward.",
-  "cosmetic.floating_badges.vip_plus.name": "VIP+ Tag Stream",
-  "cosmetic.floating_badges.vip_plus.desc": "A denser VIP+ tag stream with brighter tones.",
-  "cosmetic.floating_badges.mvp.name": "MVP Tag Stream",
-  "cosmetic.floating_badges.mvp.desc": "MVP tags rise quickly around your character.",
-  "cosmetic.floating_badges.mvp_plus.name": "MVP+ Tag Stream",
-  "cosmetic.floating_badges.mvp_plus.desc": "Top-tier MVP+ tag stream with high intensity.",
+  "cosmetic.floating_badges.vip.name": "VIP Floating Badge",
+  "cosmetic.floating_badges.vip.desc": "A clean VIP badge that orbits above your head.",
+  "cosmetic.floating_badges.vip_plus.name": "VIP+ Floating Badge",
+  "cosmetic.floating_badges.vip_plus.desc": "A refined VIP+ badge with gentle orbit motion.",
+  "cosmetic.floating_badges.mvp.name": "MVP Floating Badge",
+  "cosmetic.floating_badges.mvp.desc": "A brighter MVP badge that floats around your head.",
+  "cosmetic.floating_badges.mvp_plus.name": "MVP+ Floating Badge",
+  "cosmetic.floating_badges.mvp_plus.desc": "A prestige MVP+ crest with a slow royal orbit.",
   "cosmetic.floating_badges.mcqc_legacy_fleur.name": "MCQC Legacy Fleur",
   "cosmetic.floating_badges.mcqc_legacy_fleur.desc": "A floating fleur-de-lys badge for Minecraft Quebec veterans.",
   "cosmetic.floating_badges.mcqc_legacy_fleur_b.name": "MCQC Legacy Fleur (B)",

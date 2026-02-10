@@ -55,6 +55,7 @@ public class CosmeticDefinition {
         this.effectId = normalizeAssetPath(this.effectId);
         this.effectId = migrateLegacyAuraEffectId(this.effectId);
         this.effectId = migrateLegacyFootprintEffectId(this.effectId);
+        this.effectId = migrateLegacyFloatingBadgeEffectId(this.effectId);
         if (this.effectId.isBlank()) {
             this.effectId = defaultEffectId(this.category);
         }
@@ -109,30 +110,30 @@ public class CosmeticDefinition {
         }
 
         return switch (this.id) {
-            case "vip_gold" -> migrateToRankTag(
+            case "vip_gold" -> migrateToBadge(
                 "vip",
-                "Server/Particles/HyPerks/RankTags/VIP_Stream.particlesystem"
+                "Server/Particles/HyPerks/Badges/VIP_Gold_Badge.particlesystem"
             );
-            case "vip_plus_platinum" -> migrateToRankTag(
+            case "vip_plus_platinum" -> migrateToBadge(
                 "vip_plus",
-                "Server/Particles/HyPerks/RankTags/VIPPlus_Stream.particlesystem"
+                "Server/Particles/HyPerks/Badges/VIP_Platinum_Badge.particlesystem"
             );
-            case "mvp_diamond" -> migrateToRankTag(
+            case "mvp_diamond" -> migrateToBadge(
                 "mvp",
-                "Server/Particles/HyPerks/RankTags/MVP_Stream.particlesystem"
+                "Server/Particles/HyPerks/Badges/MVP_Diamond_Badge.particlesystem"
             );
-            case "founder_crest" -> migrateToRankTag(
+            case "founder_crest" -> migrateToBadge(
                 "mvp_plus",
-                "Server/Particles/HyPerks/RankTags/MVPPlus_Stream.particlesystem"
+                "Server/Particles/HyPerks/Badges/Founder_Crest_Badge.particlesystem"
             );
             default -> false;
         };
     }
 
-    private boolean migrateToRankTag(String newId, String effect) {
+    private boolean migrateToBadge(String newId, String effect) {
         this.id = newId;
         this.effectId = effect;
-        this.renderStyle = "rank_stream";
+        this.renderStyle = "badge";
         return true;
     }
 
@@ -142,7 +143,7 @@ public class CosmeticDefinition {
             case "auras_premium" -> "Server/Particles/HyPerks/PremiumAuras/VIP_Aura.particlesystem";
             case "trails" -> "Server/Particles/HyPerks/Trails/VIP_Trail.particlesystem";
             case "footprints" -> "Server/Particles/HyPerks/Footprints/Flame_Steps.particlesystem";
-            case "floating_badges" -> "Server/Particles/HyPerks/RankTags/VIP_Stream.particlesystem";
+            case "floating_badges" -> "Server/Particles/HyPerks/Badges/VIP_Gold_Badge.particlesystem";
             case "trophy_badges" -> "Server/Particles/HyPerks/Trophies/Season_Champion_Crown.particlesystem";
             default -> "Server/Particles/Combat/Impact/Critical/Impact_Critical.particlesystem";
         };
@@ -212,6 +213,42 @@ public class CosmeticDefinition {
         };
     }
 
+    private String migrateLegacyFloatingBadgeEffectId(String currentEffectId) {
+        if (!"floating_badges".equals(this.category)) {
+            return currentEffectId;
+        }
+
+        String current = currentEffectId == null ? "" : currentEffectId;
+        String recommended = floatingBadgeEffectForId(this.id);
+        if (recommended.isBlank()) {
+            return current;
+        }
+
+        if (current.isBlank() || current.contains("/RankTags/")) {
+            this.renderStyle = "badge";
+            return recommended;
+        }
+
+        if ("rank_stream".equalsIgnoreCase(this.renderStyle)) {
+            this.renderStyle = "badge";
+        }
+        return current;
+    }
+
+    private String floatingBadgeEffectForId(String cosmeticId) {
+        if (cosmeticId == null) {
+            return "";
+        }
+
+        return switch (cosmeticId) {
+            case "vip" -> "Server/Particles/HyPerks/Badges/VIP_Gold_Badge.particlesystem";
+            case "vip_plus" -> "Server/Particles/HyPerks/Badges/VIP_Platinum_Badge.particlesystem";
+            case "mvp" -> "Server/Particles/HyPerks/Badges/MVP_Diamond_Badge.particlesystem";
+            case "mvp_plus" -> "Server/Particles/HyPerks/Badges/Founder_Crest_Badge.particlesystem";
+            default -> "";
+        };
+    }
+
     private String footprintEffectForId(String cosmeticId) {
         if (cosmeticId == null) {
             return "";
@@ -255,7 +292,7 @@ public class CosmeticDefinition {
             case "auras_premium" -> "crown";
             case "trails" -> "stream";
             case "footprints" -> "steps";
-            case "floating_badges" -> "rank_stream";
+            case "floating_badges" -> "badge";
             case "trophy_badges" -> "crown";
             default -> "default";
         };

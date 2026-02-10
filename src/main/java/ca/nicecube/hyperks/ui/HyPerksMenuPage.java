@@ -18,7 +18,6 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import java.util.List;
-import java.util.Locale;
 
 public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPage.MenuEventData> {
     private static final String PAGE_UI_FILE = "Pages/HyPerksMenuPage.ui";
@@ -26,13 +25,11 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
     private static final String ENTRY_UI_FILE = "Pages/HyPerksMenuEntryButton.ui";
     private static final String TAB_ROOT = "#TabList";
     private static final String LIST_ROOT = "#CosmeticList";
-    private static final String SEARCH_INPUT = "#SearchInput";
     private static final String ACTIVE_EFFECT_LABEL = "#ActiveEffect";
     private static final String ACTIVE_COUNT_LABEL = "#ActiveCount";
     private static final String HINT_LABEL = "#HintLine";
 
     private final HyPerksCoreService coreService;
-    private String searchQuery = "";
     private String selectedCategoryId = CosmeticCategory.AURAS.getId();
 
     public HyPerksMenuPage(PlayerRef playerRef, HyPerksCoreService coreService) {
@@ -48,11 +45,6 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         Store<EntityStore> store
     ) {
         commands.append(PAGE_UI_FILE);
-        events.addEventBinding(
-            CustomUIEventBindingType.ValueChanged,
-            SEARCH_INPUT,
-            EventData.of(MenuEventData.KEY_SEARCH_QUERY, SEARCH_INPUT + ".Value")
-        );
         buildMenu(playerReference, store, commands, events);
     }
 
@@ -73,12 +65,6 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
 
         boolean shouldRefresh = false;
         String action = eventData.getAction();
-
-        String incomingSearch = eventData.getSearchQuery();
-        if (incomingSearch != null) {
-            this.searchQuery = incomingSearch.trim().toLowerCase(Locale.ROOT);
-            shouldRefresh = true;
-        }
 
         String tabCategoryId = eventData.getTabCategory();
         if ("tab".equals(action) && tabCategoryId != null) {
@@ -113,7 +99,6 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         UICommandBuilder commands,
         UIEventBuilder events
     ) {
-        commands.set(SEARCH_INPUT + ".Value", this.searchQuery);
         commands.clear(TAB_ROOT);
         commands.clear(LIST_ROOT);
 
@@ -193,11 +178,11 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         UICommandBuilder commands,
         UIEventBuilder events
     ) {
-        List<HyPerksCoreService.MenuEntry> entries = this.coreService.getMenuEntries(player, this.searchQuery, selectedCategory.getId());
+        List<HyPerksCoreService.MenuEntry> entries = this.coreService.getMenuEntries(player, "", selectedCategory.getId());
         if (entries.isEmpty()) {
             commands.appendInline(
                 LIST_ROOT,
-                "Label { Text: \"No cosmetics found in this tab.\"; Style: (Alignment: Center, TextColor: #ffffff(0.75)); }"
+                "Label { Text: \"No cosmetics found in this tab.\"; Style: (HorizontalAlignment: Center, TextColor: #ffffff(0.75)); }"
             );
             return;
         }
@@ -253,7 +238,6 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
         static final String KEY_CATEGORY = "Category";
         static final String KEY_COSMETIC = "Cosmetic";
         static final String KEY_TAB_CATEGORY = "TabCategory";
-        static final String KEY_SEARCH_QUERY = "@SearchQuery";
 
         static final BuilderCodec<MenuEventData> CODEC = BuilderCodec
             .builder(MenuEventData.class, MenuEventData::new)
@@ -273,19 +257,12 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
                 data -> data.tabCategory
             )
             .add()
-            .append(
-                new KeyedCodec<>(KEY_SEARCH_QUERY, Codec.STRING),
-                (data, value) -> data.searchQuery = value,
-                data -> data.searchQuery
-            )
-            .add()
             .build();
 
         private String action;
         private String category;
         private String cosmeticId;
         private String tabCategory;
-        private String searchQuery;
 
         public String getAction() {
             return action;
@@ -301,10 +278,6 @@ public final class HyPerksMenuPage extends InteractiveCustomUIPage<HyPerksMenuPa
 
         public String getTabCategory() {
             return tabCategory;
-        }
-
-        public String getSearchQuery() {
-            return searchQuery;
         }
     }
 }

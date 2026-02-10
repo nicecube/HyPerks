@@ -1,44 +1,44 @@
-Group {
-  Anchor: (Height: 56, Bottom: 5);
+Button #Button {
+  Anchor: (Width: 740, Height: 60, Bottom: 5);
+  Padding: (Full: 8);
+  LayoutMode: Top;
+  Background: (Color: #0f1d30(0.88));
+  Style: (
+    Hovered: (
+      Background: #1a324f(0.94)
+    ),
+    Pressed: (
+      Background: #244468(0.96)
+    )
+  );
 
-  Button #Button {
-    Padding: (Full: 8);
-    Anchor: (Horizontal: 0);
-    LayoutMode: Top;
-    Style: (
-      Hovered: (
-        Background: #000000(0.2)
-      ),
-      Pressed: (
-        Background: #000000(0.35)
-      )
-    );
+  Group {
+    LayoutMode: Left;
 
-    Group {
-      LayoutMode: Left;
-
-      Label #Name {
-        Style: (RenderBold: true);
-        FlexWeight: 1;
-      }
-
-      Label #Status {
-        Style: (
-          RenderUppercase: true,
-          FontSize: 10,
-          TextColor: #7a9cc6,
-          RenderBold: true
-        );
-      }
+    Label #Name {
+      Style: (
+        RenderBold: true,
+        FontSize: 13,
+        TextColor: #dcecff
+      );
+      FlexWeight: 1;
     }
 
-    Label #Meta {
-      Anchor: (Top: 3);
+    Label #Status {
       Style: (
-        FontSize: 11,
-        TextColor: #ffffff(0.65),
-        RenderItalics: true
+        RenderUppercase: true,
+        FontSize: 10,
+        TextColor: #7a9cc6,
+        RenderBold: true
       );
     }
+  }
+
+  Label #Meta {
+    Anchor: (Top: 3);
+    Style: (
+      FontSize: 11,
+      TextColor: #ffffff(0.65)
+    );
   }
 }

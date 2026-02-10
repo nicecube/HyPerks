@@ -10,9 +10,9 @@
   "ParticleRotateWithSpawner": false,
   "TrailSpawnerPositionMultiplier": 0,
   "TrailSpawnerRotationMultiplier": 1,
-  "MaxConcurrentParticles": 5,
-  "ParticleLifeSpan": { "Min": 1.4, "Max": 2.2 },
-  "SpawnRate": { "Min": 1, "Max": 2 },
+  "MaxConcurrentParticles": 8,
+  "ParticleLifeSpan": { "Min": 1.6, "Max": 2.5 },
+  "SpawnRate": { "Min": 2, "Max": 3 },
   "Particle": {
     "Texture": "Particles/Textures/HyPerks/Aura_MVP.png",
     "FrameSize": { "Width": 64, "Height": 64 },
@@ -34,8 +34,8 @@
       }
     },
     "InitialAnimationFrame": {
-      "Scale": { "X": { "Min": 0.09, "Max": 0.13 } },
-      "Opacity": 0.88,
+      "Scale": { "X": { "Min": 0.16, "Max": 0.24 } },
+      "Opacity": 0.92,
       "Rotation": { "Z": { "Min": 0, "Max": 360 } }
     }
   },
@@ -53,3 +53,4 @@
     "Speed": { "Min": 0.0, "Max": 0.03 }
   }
 }
+

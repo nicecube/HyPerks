@@ -1,94 +1,88 @@
-$C = "../Common.ui";
+Group {
+  Anchor: (Width: 1080, Height: 700);
+  Background: (Color: #081322(0.96));
+  Padding: (Full: 14);
+  LayoutMode: Top;
 
-$C.@PageOverlay {}
-
-$C.@Container {
-  Anchor: (Width: 960, Height: 720);
-
-  #Title {
-    Group {
-      $C.@Title {
-        @Text = "HYPERKS COSMETICS";
-      }
-
-      $C.@HeaderSearch {}
-    }
-  }
-
-  #Content {
+  Group {
+    Anchor: (Height: 58, Bottom: 10);
     LayoutMode: Top;
 
-    Group #TopBar {
-      Anchor: (Height: 26);
-      LayoutMode: Left;
-
-      Label {
-        Text: "ACTIVE";
-        Anchor: (Width: 70);
-        Style: (
-          RenderUppercase: true,
-          FontSize: 10,
-          TextColor: #7a9cc6
-        );
-      }
-
-      Label #ActiveEffect {
-        FlexWeight: 1;
-        Style: (
-          RenderBold: true,
-          FontSize: 14,
-          TextColor: #ffffff
-        );
-      }
-
-      Label #ActiveCount {
-        Anchor: (Width: 180);
-        Style: (
-          HorizontalAlignment: End,
-          FontSize: 12,
-          TextColor: #95b6df
-        );
-      }
-    }
-
-    Group {
-      Anchor: (Height: 8);
-    }
-
-    Group {
-      FlexWeight: 1;
-      LayoutMode: Left;
-
-      Group #TabList {
-        Anchor: (Width: 240);
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-      }
-
-      Group {
-        Anchor: (Width: 10);
-      }
-
-      Group #CosmeticList {
-        FlexWeight: 1;
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-      }
-    }
-
-    Group {
-      Anchor: (Height: 8);
-    }
-
-    Label #HintLine {
-      Text: "";
+    Label #Title {
+      Text: "HYPERKS";
+      Anchor: (Height: 30);
       Style: (
-        FontSize: 11,
-        TextColor: #ffffff(0.65),
-        RenderItalics: true
+        RenderUppercase: true,
+        RenderBold: true,
+        FontSize: 28,
+        HorizontalAlignment: Center,
+        VerticalAlignment: Center,
+        TextColor: #d8ecff
+      );
+    }
+
+    Label #Subtitle {
+      Text: "Premium Cosmetics";
+      Anchor: (Height: 20, Top: 2);
+      Style: (
+        RenderUppercase: true,
+        FontSize: 12,
+        HorizontalAlignment: Center,
+        VerticalAlignment: Center,
+        TextColor: #8fb1d6
       );
     }
   }
-}
 
-$C.@BackButton {}
+  Group {
+    Anchor: (Height: 1, Bottom: 10);
+    Background: #8eb8e8(0.25);
+  }
+
+  Group {
+    FlexWeight: 1;
+    LayoutMode: Left;
+
+    Group #TabList {
+      Anchor: (Width: 280);
+      LayoutMode: TopScrolling;
+      Padding: (Right: 10);
+    }
+
+    Group {
+      Anchor: (Width: 1);
+      Background: #8eb8e8(0.20);
+    }
+
+    Group #CosmeticList {
+      FlexWeight: 1;
+      LayoutMode: TopScrolling;
+      Padding: (Left: 12);
+
+      Label #ActiveEffect {
+        Style: (
+          RenderBold: true,
+          FontSize: 15,
+          TextColor: #ffffff
+        );
+        Anchor: (Bottom: 4);
+      }
+
+      Label #ActiveCount {
+        Style: (
+          FontSize: 12,
+          TextColor: #95b6df
+        );
+        Anchor: (Bottom: 8);
+      }
+
+      Label #HintLine {
+        Style: (
+          FontSize: 11,
+          TextColor: #ffffff(0.65)
+        );
+        Anchor: (Bottom: 10);
+      }
+    }
+  }
+}
